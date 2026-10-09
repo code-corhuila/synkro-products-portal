@@ -6,8 +6,10 @@ import { federationConfig } from './src/federation.config.ts'
 
 const double = (file: string) => fileURLToPath(new URL(`./src/test-doubles/${file}`, import.meta.url))
 
-export default defineConfig({
-  plugins: [react(), federation(federationConfig)],
+export default defineConfig(({ mode }) => ({
+  // Under Vitest (mode "test") the federation plugin would rewrite the shell
+  // imports into remote URLs, so tests alias them to fakes instead.
+  plugins: [react(), ...(mode === 'test' ? [] : [federation(federationConfig)])],
   build: {
     target: 'esnext',
     modulePreload: false,
@@ -18,10 +20,9 @@ export default defineConfig({
     environment: 'jsdom',
     globals: true,
     setupFiles: './src/test-setup.ts',
-    // The shell modules only exist at runtime inside the host; tests use fakes.
     alias: {
       'shell/apiClient': double('shellApiClient.ts'),
       'shell/session': double('shellSession.ts'),
     },
   },
-})
+}))

@@ -40,7 +40,7 @@ describe('built remote entry', () => {
   const outDir = mkdtempSync(join(tmpdir(), 'products-portal-'))
 
   beforeAll(async () => {
-    await build({ logLevel: 'silent', build: { outDir, emptyOutDir: true } })
+    await build({ logLevel: 'silent', mode: 'production', build: { outDir, emptyOutDir: true } })
   }, 120_000)
 
   afterAll(() => rmSync(outDir, { recursive: true, force: true }))
