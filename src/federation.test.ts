@@ -3,7 +3,7 @@ import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { build } from 'vite'
 import { afterAll, beforeAll, describe, expect, it } from 'vitest'
-import { federationConfig } from './federation.config'
+import { createFederationConfig, federationConfig } from './federation.config'
 import ownPackage from '../package.json'
 
 // The host (synkro-front) imports `productsPortal/App` from
@@ -33,6 +33,18 @@ describe('federation config', () => {
 
   it('reaches the host client and session through the shell remote', () => {
     expect(Object.keys(federationConfig.remotes)).toEqual(['shell'])
+  })
+})
+
+describe('shell entry url', () => {
+  it('defaults to the local host entry', () => {
+    expect(federationConfig.remotes.shell).toBe('http://localhost:5173/assets/remoteEntry.js')
+  })
+
+  it('can point at another host without editing the config', () => {
+    const config = createFederationConfig('https://host.example/assets/remoteEntry.js')
+
+    expect(config.remotes.shell).toBe('https://host.example/assets/remoteEntry.js')
   })
 })
 
