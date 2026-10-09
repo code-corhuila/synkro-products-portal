@@ -1,11 +1,10 @@
-import { existsSync, readFileSync } from 'node:fs'
-import { mkdtempSync, rmSync } from 'node:fs'
+import { existsSync, mkdtempSync, readFileSync, rmSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { build } from 'vite'
 import { afterAll, beforeAll, describe, expect, it } from 'vitest'
 import { federationConfig } from './federation.config'
-import { default as hostPackage } from '../package.json'
+import ownPackage from '../package.json'
 
 // The host (synkro-front) imports `productsPortal/App` from
 // http://localhost:5175/assets/remoteEntry.js and mounts the default export.
@@ -26,10 +25,10 @@ describe('federation config', () => {
     expect(Object.keys(federationConfig.shared)).toEqual(['react', 'react-dom'])
   })
 
-  it('shares react and react-dom at the host version range', () => {
-    expect(federationConfig.shared.react.requiredVersion).toBe(hostPackage.dependencies.react)
-    expect(federationConfig.shared['react-dom'].requiredVersion).toBe(hostPackage.dependencies['react-dom'])
-    expect(hostPackage.dependencies.react).toBe('^19.2.8')
+  it('shares react and react-dom at the version range the host pins', () => {
+    expect(federationConfig.shared.react.requiredVersion).toBe(ownPackage.dependencies.react)
+    expect(federationConfig.shared['react-dom'].requiredVersion).toBe(ownPackage.dependencies['react-dom'])
+    expect(ownPackage.dependencies.react).toBe('^19.2.8')
   })
 
   it('reaches the host client and session through the shell remote', () => {
