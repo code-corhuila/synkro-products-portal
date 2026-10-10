@@ -3,14 +3,20 @@
 // portal never defines its own: the host owns the single HTTP client and the
 // session (it adds the gateway address, credential, correlation id and timeout).
 declare module 'shell/apiClient' {
-  export interface ApiRequestOptions {
+  // Fixed by the host contract. `query` is appended to the path (undefined and
+  // null are skipped). Aborting `signal` makes the host reject; the portal does
+  // not depend on that rejection's shape, because it ignores superseded requests.
+  export interface RequestOptions {
     method?: string
     body?: unknown
     headers?: Record<string, string>
+    query?: Record<string, string | number | boolean | null | undefined>
+    idempotencyKey?: string
+    signal?: AbortSignal
   }
 
   export const apiClient: {
-    request<T>(path: string, options?: ApiRequestOptions): Promise<T>
+    request<T>(path: string, options?: RequestOptions): Promise<T>
   }
 }
 
