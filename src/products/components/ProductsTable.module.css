@@ -51,3 +51,8 @@
   align-items: center;
   gap: var(--space-3);
 }
+
+/* A placeholder in a numeric column hugs the right edge, where the number will be. */
+.table td.numeric > [aria-hidden='true'] {
+  margin-left: auto;
+}
