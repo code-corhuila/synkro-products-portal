@@ -36,13 +36,19 @@ function serviceThatCreates({ answer = () => Promise.resolve(), pages = 1 }: Ser
       catalogue.unshift(webcam)
       return answer().then(() => webcam)
     }
+    if (options?.query?.limit === 1) {
+      const matching = options.query.stockAtMost === 0 ? catalogue.filter((product) => product.stock === 0) : catalogue
+      return Promise.resolve({ data: [], meta: { page: 1, limit: 1, total: matching.length, totalPages: matching.length } })
+    }
     const page = Number(options?.query?.page ?? 1)
     const body: Page<ProductResponse> = productsPage(catalogue)
     return Promise.resolve({ ...body, meta: { ...body.meta, page, totalPages: pages } })
   })
 }
 
-const productRequests = () => apiClient.request.mock.calls.filter(([path, options]) => path === PRODUCTS_PATH && !options?.method)
+// The list requests; the summary tiles ask for a single row (limit 1).
+const productRequests = () =>
+  apiClient.request.mock.calls.filter(([path, options]) => path === PRODUCTS_PATH && !options?.method && options?.query?.limit !== 1)
 const createRequests = () => apiClient.request.mock.calls.filter(([, options]) => options?.method === 'POST')
 const openAction = () => screen.getByRole('button', { name: 'Nuevo producto' })
 // The filters have a Nombre and a Categoría of their own, so the form's fields are found inside it.
@@ -84,7 +90,7 @@ describe('ProductsPage: registering a product', () => {
 
       expect(screen.getByRole('form', { name: 'Nuevo producto' })).toBeInTheDocument()
       expect(registrationForm().getByLabelText('Nombre')).toHaveFocus()
-      expect(screen.getByRole('heading', { name: 'Products' })).toBeInTheDocument()
+      expect(screen.getByRole('heading', { name: 'Productos' })).toBeInTheDocument()
     })
 
     it('keeps one primary action in view: the opening action steps aside while the form is open', async () => {
@@ -212,6 +218,20 @@ describe('ProductsPage: registering a product', () => {
 
       await screen.findByRole('row', { name: /USB webcam/ })
       expect(productRequests()).toHaveLength(2)
+    })
+
+    it('reloads the two product tiles: one more active product, and one more out of stock', async () => {
+      const user = userEvent.setup()
+      serviceThatCreates()
+      render(<ProductsPage />)
+      await openForm(user)
+      await waitFor(() => expect(screen.getByRole('listitem', { name: 'Productos activos' })).toHaveTextContent('1'))
+      expect(screen.getByRole('listitem', { name: 'Agotados' })).toHaveTextContent('0')
+
+      await fillAndSubmit(user)
+
+      await waitFor(() => expect(screen.getByRole('listitem', { name: 'Productos activos' })).toHaveTextContent('2'))
+      expect(screen.getByRole('listitem', { name: 'Agotados' })).toHaveTextContent('1')
     })
 
     it('reloads from the first page, where the newest product is, keeping the filters', async () => {
