@@ -1,0 +1,23 @@
+import type { ComponentProps, MouseEvent } from 'react'
+import { navigateTo } from '../../navigation'
+
+type PortalLinkProps = Omit<ComponentProps<'a'>, 'href'> & { href: string }
+
+function isPlainLeftClick(event: MouseEvent<HTMLAnchorElement>): boolean {
+  return event.button === 0 && !event.ctrlKey && !event.metaKey && !event.shiftKey && !event.altKey
+}
+
+// A real link to another screen of the portal. A plain left click navigates
+// without a document load; a click with a modifier key, or a middle click, is
+// the browser's (a new tab), and the href makes that work.
+export function PortalLink({ href, onClick, ...rest }: PortalLinkProps) {
+  function handleClick(event: MouseEvent<HTMLAnchorElement>) {
+    onClick?.(event)
+    if (event.defaultPrevented || !isPlainLeftClick(event)) return
+
+    event.preventDefault()
+    navigateTo(href)
+  }
+
+  return <a href={href} onClick={handleClick} {...rest} />
+}
