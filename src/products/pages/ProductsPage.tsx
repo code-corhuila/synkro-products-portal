@@ -18,7 +18,7 @@ export function ProductsPage() {
   const products = useProductList()
   const categories = useCategories()
   const announcement = useAnnouncement()
-  const view = toListView(products.state, categories.state)
+  const view = toListView(products.state, categories.state, products.filters)
 
   const [isFormOpen, setIsFormOpen] = useState(false)
   const openAction = useRef<HTMLButtonElement>(null)
@@ -73,7 +73,12 @@ export function ProductsPage() {
         onChange={products.updateFilters}
         onRetryCategories={categories.retry}
       />
-      <ProductListBody view={view} onRetry={products.retry} onPageChange={products.goToPage} />
+      <ProductListBody
+        view={view}
+        onRetry={products.retry}
+        onPageChange={products.goToPage}
+        onRegister={isFormOpen ? undefined : () => setIsFormOpen(true)}
+      />
     </section>
   )
 }
