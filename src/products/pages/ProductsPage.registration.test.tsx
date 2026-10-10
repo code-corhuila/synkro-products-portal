@@ -36,15 +36,23 @@ function serviceThatCreates({ answer = () => Promise.resolve(), pages = 1 }: Ser
       catalogue.unshift(webcam)
       return answer().then(() => webcam)
     }
+    if (options?.query?.limit === 1) {
+      const matching = options.query.stockAtMost === 0 ? catalogue.filter((product) => product.stock === 0) : catalogue
+      return Promise.resolve({ data: [], meta: { page: 1, limit: 1, total: matching.length, totalPages: matching.length } })
+    }
     const page = Number(options?.query?.page ?? 1)
     const body: Page<ProductResponse> = productsPage(catalogue)
     return Promise.resolve({ ...body, meta: { ...body.meta, page, totalPages: pages } })
   })
 }
 
-const productRequests = () => apiClient.request.mock.calls.filter(([path, options]) => path === PRODUCTS_PATH && !options?.method)
+// The list requests; the summary tiles ask for a single row (limit 1).
+const productRequests = () =>
+  apiClient.request.mock.calls.filter(([path, options]) => path === PRODUCTS_PATH && !options?.method && options?.query?.limit !== 1)
 const createRequests = () => apiClient.request.mock.calls.filter(([, options]) => options?.method === 'POST')
 const openAction = () => screen.getByRole('button', { name: 'Nuevo producto' })
+// The filters have a Nombre and a Categoría of their own, so the form's fields are found inside it.
+const registrationForm = () => within(screen.getByRole('form', { name: 'Nuevo producto' }))
 
 async function openForm(user: ReturnType<typeof userEvent.setup>) {
   await screen.findByRole('row', { name: /Wireless mouse/ })
@@ -52,9 +60,9 @@ async function openForm(user: ReturnType<typeof userEvent.setup>) {
 }
 
 async function fillAndSubmit(user: ReturnType<typeof userEvent.setup>) {
-  await user.type(screen.getByLabelText('Nombre'), 'USB webcam')
-  await user.type(screen.getByLabelText('Precio'), '89900')
-  await user.selectOptions(screen.getByLabelText('Categoría'), 'Peripherals')
+  await user.type(registrationForm().getByLabelText('Nombre'), 'USB webcam')
+  await user.type(registrationForm().getByLabelText('Precio'), '89900')
+  await user.selectOptions(registrationForm().getByLabelText('Categoría'), 'Peripherals')
   await user.click(screen.getByRole('button', { name: 'Registrar producto' }))
 }
 
@@ -81,8 +89,8 @@ describe('ProductsPage: registering a product', () => {
       await openForm(user)
 
       expect(screen.getByRole('form', { name: 'Nuevo producto' })).toBeInTheDocument()
-      expect(screen.getByLabelText('Nombre')).toHaveFocus()
-      expect(screen.getByRole('heading', { name: 'Products' })).toBeInTheDocument()
+      expect(registrationForm().getByLabelText('Nombre')).toHaveFocus()
+      expect(screen.getByRole('heading', { name: 'Productos' })).toBeInTheDocument()
     })
 
     it('keeps one primary action in view: the opening action steps aside while the form is open', async () => {
@@ -104,7 +112,7 @@ describe('ProductsPage: registering a product', () => {
 
       const categoryRequests = apiClient.request.mock.calls.filter(([path]) => path === CATEGORIES_PATH)
       expect(categoryRequests).toHaveLength(1)
-      expect(within(screen.getByLabelText('Categoría')).getByRole('option', { name: 'Peripherals' })).toBeInTheDocument()
+      expect(within(registrationForm().getByLabelText('Categoría')).getByRole('option', { name: 'Peripherals' })).toBeInTheDocument()
     })
 
     it('closes with Cancelar and gives focus back to the action that opened it', async () => {
@@ -124,12 +132,12 @@ describe('ProductsPage: registering a product', () => {
       serviceThatCreates()
       render(<ProductsPage />)
       await openForm(user)
-      await user.type(screen.getByLabelText('Nombre'), 'Half typed')
+      await user.type(registrationForm().getByLabelText('Nombre'), 'Half typed')
       await user.click(screen.getByRole('button', { name: 'Cancelar' }))
 
       await user.click(openAction())
 
-      expect(screen.getByLabelText('Nombre')).toHaveValue('')
+      expect(registrationForm().getByLabelText('Nombre')).toHaveValue('')
     })
   })
 
@@ -175,7 +183,9 @@ describe('ProductsPage: registering a product', () => {
       await fillAndSubmit(user)
 
       const row = await screen.findByRole('row', { name: /USB webcam/ })
-      expect(within(row).getAllByRole('cell').map((cell) => cell.textContent)).toContain('0')
+      const stockCell = within(row).getAllByRole('cell')[3]
+      expect(within(stockCell).getByText('0')).toBeInTheDocument()
+      expect(within(stockCell).getByText('Agotado')).toBeInTheDocument()
     })
 
     it('posts the product the user typed, with the price in minor units', async () => {
@@ -210,18 +220,32 @@ describe('ProductsPage: registering a product', () => {
       expect(productRequests()).toHaveLength(2)
     })
 
+    it('reloads the two product tiles: one more active product, and one more out of stock', async () => {
+      const user = userEvent.setup()
+      serviceThatCreates()
+      render(<ProductsPage />)
+      await openForm(user)
+      await waitFor(() => expect(screen.getByRole('listitem', { name: 'Productos activos' })).toHaveTextContent('1'))
+      expect(screen.getByRole('listitem', { name: 'Agotados' })).toHaveTextContent('0')
+
+      await fillAndSubmit(user)
+
+      await waitFor(() => expect(screen.getByRole('listitem', { name: 'Productos activos' })).toHaveTextContent('2'))
+      expect(screen.getByRole('listitem', { name: 'Agotados' })).toHaveTextContent('1')
+    })
+
     it('reloads from the first page, where the newest product is, keeping the filters', async () => {
       const user = userEvent.setup()
       serviceThatCreates({ pages: 3 })
       render(<ProductsPage />)
-      await screen.findByText('Page 1 of 3')
-      await user.click(screen.getByRole('button', { name: 'Next page' }))
-      await screen.findByText('Page 2 of 3')
+      await screen.findByText('Página 1 de 3')
+      await user.click(screen.getByRole('button', { name: 'Siguiente' }))
+      await screen.findByText('Página 2 de 3')
       await user.click(openAction())
 
       await fillAndSubmit(user)
 
-      await screen.findByText('Page 1 of 3')
+      await screen.findByText('Página 1 de 3')
       expect(productRequests().at(-1)?.[1]?.query).toMatchObject({ page: 1 })
     })
 
@@ -290,7 +314,7 @@ describe('ProductsPage: registering a product', () => {
 
       expect(await screen.findByRole('alert')).toHaveTextContent('The product breaks a rule')
       expect(screen.getByRole('form', { name: 'Nuevo producto' })).toBeInTheDocument()
-      expect(screen.getByLabelText('Nombre')).toHaveValue('USB webcam')
+      expect(registrationForm().getByLabelText('Nombre')).toHaveValue('USB webcam')
       expect(productRequests()).toHaveLength(1)
       expect(screen.queryByText('Producto registrado')).not.toBeInTheDocument()
     })

@@ -19,7 +19,7 @@ function answerFromService(products: Page<ProductResponse> = productsPage([mouse
 }
 
 function productsRequests() {
-  return apiClient.request.mock.calls.filter(([path]) => path === '/api/v1/products')
+  return apiClient.request.mock.calls.filter(([path, options]) => path === '/api/v1/products' && options?.query?.limit !== 1)
 }
 
 describe('ProductsPage', () => {
@@ -27,12 +27,12 @@ describe('ProductsPage', () => {
     apiClient.request.mockReset()
   })
 
-  it('shows the Products heading', () => {
+  it('shows the Productos heading', () => {
     answerFromService()
 
     render(<ProductsPage />)
 
-    expect(screen.getByRole('heading', { name: 'Products' })).toBeInTheDocument()
+    expect(screen.getByRole('heading', { name: 'Productos' })).toBeInTheDocument()
   })
 
   it('shows a loading notice first', () => {
@@ -40,7 +40,7 @@ describe('ProductsPage', () => {
 
     render(<ProductsPage />)
 
-    expect(screen.getByRole('status')).toHaveTextContent('Loading products…')
+    expect(screen.getByRole('status')).toHaveTextContent('Cargando productos…')
   })
 
   it('shows every product with its category name, from the categories list', async () => {
@@ -52,7 +52,7 @@ describe('ProductsPage', () => {
     expect(within(mouseRow).getByText('COP 1.234,56')).toBeInTheDocument()
     expect(within(mouseRow).getByText('Peripherals')).toBeInTheDocument()
     const keyboardRow = screen.getByRole('row', { name: /Mechanical keyboard/ })
-    expect(within(keyboardRow).getByText('Unknown category')).toBeInTheDocument()
+    expect(within(keyboardRow).getByText('Categoría desconocida')).toBeInTheDocument()
   })
 
   it('shows the empty notice when no product matches', async () => {
@@ -60,7 +60,7 @@ describe('ProductsPage', () => {
 
     render(<ProductsPage />)
 
-    expect(await screen.findByText('No products match these filters.')).toBeInTheDocument()
+    expect(await screen.findByText('Aún no hay productos registrados')).toBeInTheDocument()
   })
 
   it('shows the error with a retry that brings the products back', async () => {
@@ -72,7 +72,7 @@ describe('ProductsPage', () => {
       return productCalls === 1 ? Promise.reject(new Error('gateway down')) : Promise.resolve(productsPage([mouse]))
     })
     render(<ProductsPage />)
-    await user.click(await screen.findByRole('button', { name: 'Retry' }))
+    await user.click(await screen.findByRole('button', { name: 'Reintentar' }))
 
     expect(await screen.findByRole('row', { name: /Wireless mouse/ })).toBeInTheDocument()
     expect(productsRequests()).toHaveLength(2)
@@ -84,7 +84,7 @@ describe('ProductsPage', () => {
     render(<ProductsPage />)
     await screen.findByRole('row', { name: /Wireless mouse/ })
 
-    await user.type(screen.getByLabelText('Name'), 'key{Enter}')
+    await user.type(screen.getByLabelText('Nombre'), 'key{Enter}')
 
     expect(await screen.findByRole('row', { name: /Mechanical keyboard/ })).toBeInTheDocument()
     expect(lastRequestUrl()).toBe('/api/v1/products?page=1&limit=20&name=key')
@@ -96,7 +96,7 @@ describe('ProductsPage', () => {
     render(<ProductsPage />)
     await screen.findByRole('row', { name: /Wireless mouse/ })
 
-    await user.selectOptions(screen.getByLabelText('Category'), 'c-2')
+    await user.selectOptions(screen.getByLabelText('Categoría'), 'c-2')
 
     await waitFor(() => expect(lastRequestUrl()).toBe('/api/v1/products?page=1&limit=20&categoryId=c-2'))
   })
@@ -109,11 +109,11 @@ describe('ProductsPage', () => {
       return Promise.resolve({ data: [mouse], meta: { page, limit: 20, total: 41, totalPages: 3 } })
     })
     render(<ProductsPage />)
-    expect(await screen.findByText('Page 1 of 3')).toBeInTheDocument()
+    expect(await screen.findByText('Página 1 de 3')).toBeInTheDocument()
 
-    await user.click(screen.getByRole('button', { name: 'Next page' }))
+    await user.click(screen.getByRole('button', { name: 'Siguiente' }))
 
-    expect(await screen.findByText('Page 2 of 3')).toBeInTheDocument()
+    expect(await screen.findByText('Página 2 de 3')).toBeInTheDocument()
     expect(lastRequestUrl()).toBe('/api/v1/products?page=2&limit=20')
   })
 
@@ -130,10 +130,10 @@ describe('ProductsPage', () => {
     render(<ProductsPage />)
 
     const mouseRow = await screen.findByRole('row', { name: /Wireless mouse/ })
-    expect(within(mouseRow).getByText('Unavailable')).toBeInTheDocument()
-    expect(screen.getByText('Categories could not be loaded.')).toBeInTheDocument()
+    expect(within(mouseRow).getByText('No disponible')).toBeInTheDocument()
+    expect(screen.getByText('No se pudieron cargar las categorías.')).toBeInTheDocument()
 
-    await user.click(screen.getByRole('button', { name: 'Retry categories' }))
+    await user.click(screen.getByRole('button', { name: 'Reintentar categorías' }))
 
     await waitFor(() => expect(within(screen.getByRole('row', { name: /Wireless mouse/ })).getByText('Peripherals')).toBeInTheDocument())
   })

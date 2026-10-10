@@ -10,6 +10,7 @@ describe('toProductRow', () => {
       name: 'Wireless mouse',
       price: 'COP 1.234,56',
       stock: 7,
+      stockState: 'in-stock',
       category: 'Peripherals',
       active: true,
     })

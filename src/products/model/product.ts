@@ -1,4 +1,5 @@
 import { formatMinorUnits } from './money'
+import { stockStateOf, type StockState } from './stockState'
 
 // Mirrors ProductResponse in synkro-products-api.yaml. The response carries
 // only categoryId, so the category name comes from the categories list.
@@ -28,6 +29,7 @@ export interface ProductRow {
   name: string
   price: string
   stock: number
+  stockState: StockState
   category: string
   active: boolean
 }
@@ -38,6 +40,7 @@ export function toProductRow(product: ProductResponse, categoryLabel: (categoryI
     name: product.name,
     price: formatMinorUnits(product.priceCents),
     stock: product.stock,
+    stockState: stockStateOf(product.stock),
     category: categoryLabel(product.categoryId),
     active: product.active,
   }
