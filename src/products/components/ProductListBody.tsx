@@ -1,6 +1,7 @@
 import { listCopy } from '../model/listCopy'
 import type { ListView } from '../model/productList'
-import { ListEmpty } from './ListEmpty'
+import type { TableColumn } from '../model/tableColumns'
+import { ListEmpty, type EmptyCopy } from './ListEmpty'
 import { ListError } from './ListError'
 import { Pagination } from './Pagination'
 import styles from './ProductListBody.module.css'
@@ -12,6 +13,10 @@ interface ProductListBodyProps {
   view: ListView
   // What the row actions do; undefined when the rows offer none.
   actions?: RowActionHandlers
+  // The columns to show; the catalogue's by default.
+  columns?: TableColumn[]
+  emptyCopy?: EmptyCopy
+  tableLabel?: string
   onRetry: () => void
   onPageChange: (page: number) => void
   // Opens the registration form from the empty state; undefined while it cannot open.
@@ -19,7 +24,16 @@ interface ProductListBodyProps {
 }
 
 // The four states of the list: loading, error with retry, empty, and data.
-export function ProductListBody({ view, actions, onRetry, onPageChange, onRegister }: ProductListBodyProps) {
+export function ProductListBody({
+  view,
+  actions,
+  columns,
+  emptyCopy,
+  tableLabel,
+  onRetry,
+  onPageChange,
+  onRegister,
+}: ProductListBodyProps) {
   switch (view.status) {
     case 'loading':
       return (
@@ -27,7 +41,7 @@ export function ProductListBody({ view, actions, onRetry, onPageChange, onRegist
           <p role="status" className={styles.visuallyHidden}>
             {listCopy.loading}
           </p>
-          <ProductsTableSkeleton />
+          <ProductsTableSkeleton columns={columns} />
         </>
       )
 
@@ -37,7 +51,7 @@ export function ProductListBody({ view, actions, onRetry, onPageChange, onRegist
     case 'empty':
       return (
         <>
-          <ListEmpty hasFilters={view.hasFilters} onRegister={onRegister} />
+          <ListEmpty hasFilters={view.hasFilters} copy={emptyCopy} onRegister={onRegister} />
           {view.meta.totalPages > 0 && <Pagination meta={view.meta} onPageChange={onPageChange} />}
         </>
       )
@@ -45,7 +59,7 @@ export function ProductListBody({ view, actions, onRetry, onPageChange, onRegist
     case 'data':
       return (
         <>
-          <ProductsTable rows={view.rows} actions={actions} />
+          <ProductsTable rows={view.rows} columns={columns} actions={actions} label={tableLabel} />
           <Pagination meta={view.meta} onPageChange={onPageChange} />
         </>
       )
