@@ -25,6 +25,32 @@ export const listCopy = {
     active: 'Activo',
     inactive: 'Inactivo',
   },
+  filters: {
+    name: 'Nombre',
+    nameHint: 'Coincidencia parcial, sin distinguir mayúsculas',
+    search: 'Buscar',
+    category: 'Categoría',
+    allCategories: 'Todas las categorías',
+    categoriesLoading: 'Cargando categorías…',
+    categoriesUnavailable: 'Categorías no disponibles',
+    categoriesFailed: 'No se pudieron cargar las categorías.',
+    retryCategories: 'Reintentar categorías',
+    status: 'Estado',
+    statusOptions: { all: 'Todos', active: 'Activos', inactive: 'Inactivos' },
+  },
+
+  pagination: {
+    label: 'Paginación',
+    previous: 'Anterior',
+    next: 'Siguiente',
+    page: (page: number, totalPages: number) => `Página ${page} de ${totalPages}`,
+  },
+
+  failed: 'No se pudieron cargar los productos.',
+  retry: 'Reintentar',
+  emptyCatalogue: 'Aún no hay productos registrados',
+  noMatch: 'Ningún producto coincide con estos filtros',
+
   categoryLabel: {
     loading: 'Cargando…',
     unavailable: 'No disponible',

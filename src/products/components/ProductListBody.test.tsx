@@ -15,11 +15,11 @@ const row = {
   active: true,
 }
 
-function renderBody(view: ListView, onRegister: (() => void) | undefined = vi.fn()) {
+function renderBody(view: ListView, onRegister: (() => void) | null = vi.fn()) {
   const onRetry = vi.fn()
   const onPageChange = vi.fn()
   const { container } = render(
-    <ProductListBody view={view} onRetry={onRetry} onPageChange={onPageChange} onRegister={onRegister} />,
+    <ProductListBody view={view} onRetry={onRetry} onPageChange={onPageChange} onRegister={onRegister ?? undefined} />,
   )
   return { onRetry, onPageChange, onRegister, container }
 }
@@ -66,7 +66,7 @@ describe('ProductListBody', () => {
     })
 
     it('offers no action when registering is not possible right now', () => {
-      renderBody(view, undefined)
+      renderBody(view, null)
 
       expect(screen.getByText('Aún no hay productos registrados')).toBeInTheDocument()
       expect(screen.queryByRole('button')).not.toBeInTheDocument()

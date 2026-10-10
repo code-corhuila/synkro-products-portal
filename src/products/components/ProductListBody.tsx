@@ -1,5 +1,7 @@
 import { listCopy } from '../model/listCopy'
 import type { ListView } from '../model/productList'
+import { ListEmpty } from './ListEmpty'
+import { ListError } from './ListError'
 import { Pagination } from './Pagination'
 import styles from './ProductListBody.module.css'
 import { ProductsTable } from './ProductsTable'
@@ -9,10 +11,12 @@ interface ProductListBodyProps {
   view: ListView
   onRetry: () => void
   onPageChange: (page: number) => void
+  // Opens the registration form from the empty state; undefined while it cannot open.
+  onRegister: (() => void) | undefined
 }
 
 // The four states of the list: loading, error with retry, empty, and data.
-export function ProductListBody({ view, onRetry, onPageChange }: ProductListBodyProps) {
+export function ProductListBody({ view, onRetry, onPageChange, onRegister }: ProductListBodyProps) {
   switch (view.status) {
     case 'loading':
       return (
@@ -25,19 +29,12 @@ export function ProductListBody({ view, onRetry, onPageChange }: ProductListBody
       )
 
     case 'error':
-      return (
-        <div role="alert">
-          <p>The products could not be loaded.</p>
-          <button type="button" onClick={onRetry}>
-            Retry
-          </button>
-        </div>
-      )
+      return <ListError onRetry={onRetry} />
 
     case 'empty':
       return (
         <>
-          <p>No products match these filters.</p>
+          <ListEmpty hasFilters={view.hasFilters} onRegister={onRegister} />
           {view.meta.totalPages > 0 && <Pagination meta={view.meta} onPageChange={onPageChange} />}
         </>
       )
