@@ -16,7 +16,7 @@ interface ProductEditFormProps {
   onRetryCategories: () => void
   onUpdated: (product: ProductResponse) => void
   // The service says the product no longer exists: the page reloads its list.
-  onGone: () => void
+  onOutdated: () => void
   onCancel: () => void
 }
 
@@ -29,7 +29,7 @@ export function ProductEditForm({
   categories,
   onRetryCategories,
   onUpdated,
-  onGone,
+  onOutdated,
   onCancel,
 }: ProductEditFormProps) {
   const send = useCallback((data: NewProduct) => updateProduct(product.productId, data), [product.productId])
@@ -54,7 +54,7 @@ export function ProductEditForm({
       isPending={isPending}
       submit={submit}
       onDone={onUpdated}
-      onGone={onGone}
+      onOutdated={onOutdated}
       onCancel={onCancel}
     />
   )

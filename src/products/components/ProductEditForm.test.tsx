@@ -19,7 +19,7 @@ function renderForm({ product = mouse, categories = ready(peripherals, monitors,
   const handlers = {
     onRetryCategories: vi.fn(),
     onUpdated: vi.fn(),
-    onGone: vi.fn(),
+    onOutdated: vi.fn(),
     onCancel: vi.fn(),
   }
   const user = userEvent.setup()
@@ -206,7 +206,7 @@ describe('ProductEditForm', () => {
 
     it('blames the category field on a 404 that is about the category', async () => {
       rejectWith(404, 'NOT_FOUND', 'Category not found or not active')
-      const { user, onGone } = renderForm()
+      const { user, onOutdated } = renderForm()
 
       await user.click(save())
 
@@ -214,17 +214,17 @@ describe('ProductEditForm', () => {
         'La categoría no existe o está inactiva. Elige otra.',
       )
       expect(screen.getByLabelText('Categoría')).toHaveFocus()
-      expect(onGone).not.toHaveBeenCalled()
+      expect(onOutdated).not.toHaveBeenCalled()
     })
 
     it('says the product no longer exists on a 404 that is about the product, and tells the page', async () => {
       rejectWith(404, 'NOT_FOUND', 'Product not found')
-      const { user, onGone, onUpdated } = renderForm()
+      const { user, onOutdated, onUpdated } = renderForm()
 
       await user.click(save())
 
       expect(await screen.findByRole('alert')).toHaveTextContent('El producto ya no existe')
-      expect(onGone).toHaveBeenCalledOnce()
+      expect(onOutdated).toHaveBeenCalledOnce()
       expect(onUpdated).not.toHaveBeenCalled()
       expect(screen.getByRole('form', { name: 'Editar producto' })).toBeInTheDocument()
     })
