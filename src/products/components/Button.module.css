@@ -1,4 +1,4 @@
-/* Buttons follow design-system.md: primary and secondary, with the role alias
+/* Buttons follow design-system.md: primary, secondary, ghost and danger, with the role alias
    --color-secondary-action so nothing here branches on the theme. */
 .button {
   box-sizing: border-box;
@@ -41,7 +41,30 @@
   box-shadow: inset 0 0 0 1px var(--color-secondary-action);
 }
 
+.ghost {
+  background: transparent;
+  border-color: transparent;
+  color: var(--color-text-secondary);
+}
+
+.ghost:hover:not(:disabled) {
+  text-decoration: underline;
+}
+
+.danger {
+  background: transparent;
+  border-color: var(--color-error-700);
+  color: var(--color-error-700);
+}
+
+.danger:hover:not(:disabled) {
+  box-shadow: inset 0 0 0 1px var(--color-error-700);
+  text-decoration: underline;
+}
+
+/* The compact size is still a comfortable target: at least 24 by 24 CSS pixels. */
 .small {
+  min-width: var(--space-8);
   min-height: var(--space-8);
   padding: var(--space-1) var(--space-3);
   font-size: var(--font-size-sm);
