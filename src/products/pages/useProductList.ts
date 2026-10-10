@@ -1,5 +1,6 @@
 import { useCallback, useState } from 'react'
 import { listProducts } from '../api/productsApi'
+import { lastValidPage } from '../model/page'
 import type { FilterChange, ProductFilters } from '../model/product'
 import { useLoad } from './useLoad'
 
@@ -13,6 +14,10 @@ const loadProducts = (filters: ProductFilters, signal: AbortSignal) => listProdu
 export function useProductList(initialFilters: ProductFilters = FIRST_PAGE_WITHOUT_FILTERS) {
   const [filters, setFilters] = useState<ProductFilters>(initialFilters)
   const { state, retry } = useLoad(filters, loadProducts)
+
+  // A reload can leave the user on a page that no longer exists: go to the last one.
+  const validPage = state.status === 'ready' ? lastValidPage(filters.page, state.value.meta.totalPages) : filters.page
+  if (validPage !== filters.page) setFilters((current) => ({ ...current, page: validPage }))
 
   const updateFilters = useCallback((change: FilterChange) => {
     setFilters((current) => ({ ...current, ...change, page: 1 }))
