@@ -19,7 +19,7 @@ export function toListView(
   categories: Loadable<CategoryResponse[]>,
   filters: ProductFilters,
   // The stock lookup always asks for active products, which is not a filter the user chose.
-  options: { ignoreActive?: boolean } = {},
+  options: { ignoreActive?: boolean; lowStockIds?: ReadonlySet<string> } = {},
 ): ListView {
   if (products.status === 'loading') return { status: 'loading' }
   if (products.status === 'error') return { status: 'error' }
@@ -28,7 +28,7 @@ export function toListView(
   if (data.length === 0) return { status: 'empty', meta, hasFilters: hasActiveFilters(options.ignoreActive ? { ...filters, active: undefined } : filters) }
 
   const categoryLabel = labelForCategories(categories)
-  return { status: 'data', rows: data.map((product) => toProductRow(product, categoryLabel)), meta }
+  return { status: 'data', rows: data.map((product) => toProductRow(product, categoryLabel, options.lowStockIds?.has(product.productId))), meta }
 }
 
 function labelForCategories(categories: Loadable<CategoryResponse[]>): (categoryId: string) => string {

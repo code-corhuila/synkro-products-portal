@@ -35,6 +35,8 @@ export function ProductsTable({ rows, columns = tableColumns, actions, label = l
   )
 }
 
+const stockTone = { 'in-stock': 'success', 'low-stock': 'warning', 'out-of-stock': 'error' } as const
+
 function cellClass({ id, numeric, alignEnd }: TableColumn): string | undefined {
   if (numeric) return styles.numeric
   if (alignEnd) return styles.actionsCell
@@ -56,7 +58,7 @@ function cellContent(columnId: string, row: ProductRow, actions: RowActionHandle
     case 'stock':
       return (
         <span className={styles.stock}>
-          <Badge tone={row.stockState === 'in-stock' ? 'success' : 'error'}>{listCopy.stock[row.stockState]}</Badge>
+          <Badge tone={stockTone[row.stockState]}>{listCopy.stock[row.stockState]}</Badge>
           {row.stock}
         </span>
       )
