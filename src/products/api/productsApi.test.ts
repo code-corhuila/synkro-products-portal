@@ -1,27 +1,14 @@
 import { apiClient, lastRequestUrl } from '../../test-doubles/shellApiClient'
-import type { Page } from '../model/page'
-import type { ProductResponse } from '../model/product'
-import type { CategoryResponse } from '../model/category'
+import {
+  accessories,
+  categoriesPage,
+  mouse,
+  peripherals,
+  productsPage,
+} from '../../test-doubles/productsFixtures'
 import { listAllCategories, listCategories, listProducts } from './productsApi'
 
 const emptyMeta = { page: 1, limit: 20, total: 0, totalPages: 0 }
-
-const pageOf = <T>(data: T[], totalPages: number): Page<T> => ({
-  data,
-  meta: { page: 1, limit: 100, total: data.length, totalPages },
-})
-
-const product: ProductResponse = {
-  productId: 'p-1',
-  name: 'Wireless mouse',
-  priceCents: 123_456,
-  stock: 7,
-  categoryId: 'c-1',
-  active: true,
-}
-
-const peripherals: CategoryResponse = { categoryId: 'c-1', name: 'Peripherals', active: true }
-const accessories: CategoryResponse = { categoryId: 'c-2', name: 'Accessories', active: false }
 
 describe('productsApi', () => {
   const fetchSpy = vi.spyOn(globalThis, 'fetch')
@@ -85,7 +72,7 @@ describe('productsApi', () => {
     })
 
     it('resolves with the typed products and page metadata', async () => {
-      const page: Page<ProductResponse> = { data: [product], meta: { page: 1, limit: 20, total: 1, totalPages: 1 } }
+      const page = productsPage([mouse])
       apiClient.request.mockResolvedValue(page)
 
       const response = await listProducts({ page: 1 })
@@ -113,7 +100,7 @@ describe('productsApi', () => {
 
   describe('listCategories', () => {
     it('lists one page of categories with the page and limit', async () => {
-      apiClient.request.mockResolvedValue(pageOf([peripherals], 1))
+      apiClient.request.mockResolvedValue(categoriesPage([peripherals], 1))
 
       await listCategories({ page: 1, limit: 100 })
 
@@ -121,7 +108,7 @@ describe('productsApi', () => {
     })
 
     it('sends the active filter only when it is set', async () => {
-      apiClient.request.mockResolvedValue(pageOf([peripherals], 1))
+      apiClient.request.mockResolvedValue(categoriesPage([peripherals], 1))
 
       await listCategories({ page: 1, limit: 100, active: true })
 
@@ -129,7 +116,7 @@ describe('productsApi', () => {
     })
 
     it('resolves with the typed categories and page metadata', async () => {
-      const page = pageOf([peripherals], 1)
+      const page = categoriesPage([peripherals], 1)
       apiClient.request.mockResolvedValue(page)
 
       const response = await listCategories({ page: 1, limit: 100 })
@@ -142,8 +129,8 @@ describe('productsApi', () => {
   describe('listAllCategories', () => {
     it('reads every page and returns the categories in order', async () => {
       apiClient.request
-        .mockResolvedValueOnce(pageOf([peripherals], 2))
-        .mockResolvedValueOnce(pageOf([accessories], 2))
+        .mockResolvedValueOnce(categoriesPage([peripherals], 2))
+        .mockResolvedValueOnce(categoriesPage([accessories], 2))
 
       const categories = await listAllCategories()
 
@@ -153,14 +140,14 @@ describe('productsApi', () => {
     })
 
     it('reads a single page when there is only one', async () => {
-      apiClient.request.mockResolvedValueOnce(pageOf([peripherals], 1))
+      apiClient.request.mockResolvedValueOnce(categoriesPage([peripherals], 1))
 
       await expect(listAllCategories()).resolves.toEqual([peripherals])
       expect(apiClient.request).toHaveBeenCalledTimes(1)
     })
 
     it('returns no categories after one read when there are none', async () => {
-      apiClient.request.mockResolvedValueOnce(pageOf([], 0))
+      apiClient.request.mockResolvedValueOnce(categoriesPage([], 0))
 
       await expect(listAllCategories()).resolves.toEqual([])
       expect(apiClient.request).toHaveBeenCalledTimes(1)
@@ -168,8 +155,8 @@ describe('productsApi', () => {
 
     it('passes the abort signal on every page', async () => {
       apiClient.request
-        .mockResolvedValueOnce(pageOf([peripherals], 2))
-        .mockResolvedValueOnce(pageOf([accessories], 2))
+        .mockResolvedValueOnce(categoriesPage([peripherals], 2))
+        .mockResolvedValueOnce(categoriesPage([accessories], 2))
       const controller = new AbortController()
 
       await listAllCategories({ signal: controller.signal })

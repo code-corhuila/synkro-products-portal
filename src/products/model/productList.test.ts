@@ -1,33 +1,6 @@
-import type { CategoryResponse } from './category'
+import { keyboard, mouse, peripherals, productsPage } from '../../test-doubles/productsFixtures'
 import type { Loadable } from './loadable'
-import type { Page } from './page'
-import type { ProductResponse } from './product'
 import { toListView } from './productList'
-
-const mouse: ProductResponse = {
-  productId: 'p-1',
-  name: 'Wireless mouse',
-  priceCents: 123_456,
-  stock: 7,
-  categoryId: 'c-1',
-  active: true,
-}
-
-const keyboard: ProductResponse = {
-  productId: 'p-2',
-  name: 'Mechanical keyboard',
-  priceCents: 0,
-  stock: 0,
-  categoryId: 'c-404',
-  active: false,
-}
-
-const peripherals: CategoryResponse = { categoryId: 'c-1', name: 'Peripherals', active: true }
-
-const productsPage = (data: ProductResponse[]): Page<ProductResponse> => ({
-  data,
-  meta: { page: 1, limit: 20, total: data.length, totalPages: data.length > 0 ? 1 : 0 },
-})
 
 const ready = <T>(value: T): Loadable<T> => ({ status: 'ready', value })
 const loading: Loadable<never> = { status: 'loading' }
