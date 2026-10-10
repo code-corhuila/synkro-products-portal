@@ -1,19 +1,35 @@
-/* The registration panel: a card with the design system's large-panel radius.
-   The host no longer restyles a portal's headings, paragraphs or code, so the
-   form styles its own title, hints and errors. */
-.form {
+/* The scrim that dims the page behind the dialog, and centres it. */
+.backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-4);
+  background: var(--color-bg-overlay);
+}
+
+.dialog {
   box-sizing: border-box;
   display: flex;
   flex-direction: column;
   gap: var(--space-4);
   width: 100%;
-  max-width: 36rem;
+  max-width: 28rem;
+  max-height: 100%;
+  overflow-y: auto;
   padding: var(--space-6);
   border-radius: var(--radius-lg);
   background: var(--color-bg-card);
-  box-shadow: var(--shadow-md);
+  box-shadow: var(--shadow-lg);
   color: var(--color-text-primary);
   font-family: var(--font-family-sans);
+}
+
+.dialog:focus {
+  outline: none;
 }
 
 .title {
@@ -24,10 +40,16 @@
   font-weight: var(--font-weight-black);
   line-height: var(--line-height-tight);
   letter-spacing: 0.01em;
-  text-transform: uppercase;
+  overflow-wrap: anywhere;
 }
 
-/* The inline alert for an error that is not about a single field. */
+.message {
+  margin: 0;
+  color: var(--color-text-primary);
+  font-size: var(--font-size-base);
+  line-height: var(--line-height-normal);
+}
+
 .alert {
   padding: var(--space-3) var(--space-4);
   border-left: 4px solid var(--color-error-700);
@@ -38,17 +60,13 @@
 .alertTitle,
 .alertDetail {
   margin: 0;
+  color: var(--color-text-primary);
   font-size: var(--font-size-sm);
   line-height: var(--line-height-normal);
 }
 
 .alertTitle {
-  color: var(--color-text-primary);
   font-weight: var(--font-weight-semibold);
-}
-
-.alertDetail {
-  color: var(--color-text-primary);
 }
 
 .actions {
@@ -59,7 +77,7 @@
 }
 
 @media (max-width: 30rem) {
-  .form {
+  .dialog {
     padding: var(--space-4);
   }
 

@@ -71,8 +71,8 @@ A header with "Nuevo producto", three summary tiles, and the "Catálogo" card: f
 the user reads is Spanish and lives in `model/listCopy.ts` (the registration form's is in
 `model/registrationCopy.ts`); code, tests and comments stay in English.
 
-- **Columns:** Producto, Categoría (badge), Precio, Stock (number and badge), Estado (badge), in the
-  wireframe's order. The Actions column belongs to the story that adds editing and deactivating.
+- **Columns:** Producto, Categoría (badge), Precio, Stock (number and badge), Estado (badge) and Acciones
+  (right-aligned, see "Managing products and categories"), in the wireframe's order.
   `model/tableColumns.ts` lists them once, so the table and its skeleton always have the same shape.
 - **Stock state:** only *En stock* (`stock > 0`) and *Agotado* (`stock === 0`), in
   `model/stockState.ts`. *Stock bajo* needs the worker's threshold and belongs to the stock alerts.
@@ -107,8 +107,7 @@ the user reads is Spanish and lives in `model/listCopy.ts` (the registration for
 - **Money:** `priceCents` is an integer count of minor units of COP (1/100). `model/money.ts`
   formats it with integer arithmetic only, as `COP 1.234,56` (Colombian separators).
 
-Out of scope here: editing or deactivating products, the categories section, stock adjustments, the
-stock lookup and the stock alerts.
+Out of scope here: the stock lookup and the stock alerts.
 
 ## Registering a product (`/products`)
 
@@ -137,6 +136,51 @@ All user-facing text is in Spanish.
 - **Categories:** the form reuses the list's categories and offers only the active ones. If they failed to
   load, the category field says so and offers a retry.
 
+## Managing products and categories (`/products`)
+
+Editing, adjusting stock, deactivating, and the categories section. Everything the user reads is in
+`model/managementCopy.ts` and `model/categoriesCopy.ts` (`src/copy.test.ts` fails on Spanish text anywhere else).
+
+- **One panel at a time.** `model/panel.ts` is the page's one state: `none | register | edit(product) |
+  adjust(product) | deactivate(product) | createCategory | renameCategory(category) | deactivateCategory(category)`.
+  While one is open, "Nuevo producto" and the empty-state button are not rendered, and the row actions and the
+  category controls are disabled (not hidden, so the table does not reflow). Closing a panel gives the focus back to
+  the control that opened it, found again by its `data-opener` mark because a reload replaces the rows; if it no
+  longer exists (a deactivated row has no actions, a chip is gone) the focus goes to the table region or to the
+  "Categorías" heading (`pages/useFocusReturn.ts`).
+- **Actions column.** Active rows offer ghost *Editar*, ghost *Ajustar stock* and danger *Desactivar*, each named after the
+  product ("Editar Teclado mecánico"); inactive rows offer none, since the contract has no reactivation. `Button` gained the
+  `ghost` and `danger` variants; the compact size is at least 24 × 24 CSS px.
+- **Shared form.** Registering and editing are one `ProductForm` (fields, rules, error placement, focus) with two thin
+  wrappers that only decide how the data is sent. `FormShell` (panel), `useFormFeedback` (errors and focus) and
+  `useSingleFlight` (one request at a time, ignored once closed) serve every form of the page, including the category and
+  stock forms. `useSubmissionIntent` is the generic "send once per intent with a reusable `Idempotency-Key`": registration,
+  stock adjustment and category creation use it.
+- **Edit.** `PUT /products/{id}` with `{ name, priceCents, categoryId }`, never stock, no key. The price opens as typed text
+  (`model/priceText.ts`, integer arithmetic only: `1250050` is `12500,50`, `700` is `7`, `7` is `0,07`). A category that is
+  inactive or unknown is not kept: the field starts empty and says why.
+- **The two 404s of `PUT /products/{id}`.** The contract's `NotFound` has no field telling a missing product from a missing
+  or inactive category, and the real service answers both `404 NOT_FOUND` with no `details`. Only its message differs
+  (`Product not found` / `Category not found or not active`), so `api/productFailures.ts` blames the category field when the
+  message names a category and treats anything else, including the contract's generic `Resource not found`, as the product.
+- **Adjust stock.** `Cantidad a ajustar` is a signed whole number (`5`, `+5`, `-3`; never 0, no decimals) and `Motivo` is 1–255
+  characters. The form shows the resulting stock as the user types and refuses at once a withdrawal larger than the stock;
+  a `422` (the stock changed meanwhile) lands on the quantity field and reloads the list, so the stock shown follows. The
+  intent is `(product, delta, trimmed reason)`: the same data after a failure reuses the key, changed data or a success starts
+  a new one; `201` and the idempotent `200` are both success.
+- **Deactivate.** `components/ConfirmDialog.tsx` is a hand-built modal, not `<dialog>.showModal()`: jsdom does not implement it, so
+  its behaviour could not be tested. It is labelled and described, `aria-modal`, traps Tab, closes with Escape (not while
+  pending), starts on *Cancelar*, gives the focus back, keeps the page behind `inert` and unscrollable, and uses `--color-bg-overlay`.
+  `DeactivationDialog` wraps it for products and categories: on a failure it stays open with the message and the confirm button retries.
+- **Categories.** The section reads the page's one categories state but has its own loading (skeleton chips), error
+  ("No se pudieron cargar las categorías" and *Reintentar*) and empty states (`components/CategoriesSection.tsx`). Creating
+  uses a key per intent; renaming is a `PUT`; deactivating a category that still has active products is a `422` explained in Spanish.
+  After any change the categories reload, so the filter and every product form see it. The filter keeps listing inactive
+  categories on purpose: inactive products can still belong to one.
+- **Reloading.** Success reloads the page the user is on with its filters (`reload` in `useProductList`), the summary tiles, and
+  announces it for 4 seconds; a failure that shows the list is stale (`outdated` in `FormFailure`: a 404, a stale-stock 422)
+  also reloads it.
+
 ### Styling
 
 Styles are CSS Modules (`*.module.css`) next to the component. They read the host's design tokens by name
@@ -145,7 +189,7 @@ it. CSS Modules scope each class name, and a remote's stylesheet lands in the ho
 global class could collide with the host's or another portal's. The host publishes the tokens and follows the
 operating system's light or dark theme, so no component branches on the theme except the input background
 the design system asks to sit on the page colour in dark. The host's `Button` is not shared: `components/Button.tsx` is
-this portal's own (primary or secondary, regular or small). The host publishes no border token, so the table's
+this portal's own (primary, secondary, ghost or danger; regular or small). The host publishes no border token, so the table's
 row lines use `--color-text-disabled`. Text sits on a card (`--color-bg-card`), where the ink and the muted text
 measure above 4.5:1 in both themes; error text stays on a card too, because `--color-error-700` on the canvas
 is 4.34:1. `build.cssCodeSplit: false` keeps one stylesheet that the remote entry loads, and the

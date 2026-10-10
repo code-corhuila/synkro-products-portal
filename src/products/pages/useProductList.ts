@@ -27,5 +27,7 @@ export function useProductList() {
     setFilters((current) => ({ ...current, page: 1 }))
   }, [])
 
-  return { state, filters, updateFilters, goToPage, reloadFromFirstPage, retry }
+  // Asks again for the page the user is on, with the same filters: what an edit, a
+  // stock adjustment or a deactivation needs, so the row changes in place.
+  return { state, filters, updateFilters, goToPage, reloadFromFirstPage, reload: retry, retry }
 }

@@ -25,11 +25,11 @@ const keyboardRow: ProductRow = {
 const cellsOf = (name: RegExp) => within(screen.getByRole('row', { name })).getAllByRole('cell')
 
 describe('ProductsTable', () => {
-  it('has the five columns of the wireframe, in order, and no actions column', () => {
+  it('has the columns of the wireframe, in order, ending with the actions', () => {
     render(<ProductsTable rows={[mouseRow]} />)
 
     const headers = screen.getAllByRole('columnheader').map((header) => header.textContent)
-    expect(headers).toEqual(['Producto', 'Categoría', 'Precio', 'Stock', 'Estado'])
+    expect(headers).toEqual(['Producto', 'Categoría', 'Precio', 'Stock', 'Estado', 'Acciones'])
   })
 
   it('sits in a keyboard-reachable, labelled region that scrolls on its own', () => {
@@ -77,9 +77,9 @@ describe('ProductsTable', () => {
     render(<ProductsTable rows={[mouseRow]} />)
 
     const cells = cellsOf(/Wireless mouse/)
-    expect(cells.map((cell) => /numeric/.test(cell.className))).toEqual([false, false, true, true, false])
+    expect(cells.map((cell) => /numeric/.test(cell.className))).toEqual([false, false, true, true, false, false])
     const headers = screen.getAllByRole('columnheader')
-    expect(headers.map((header) => /numeric/.test(header.className))).toEqual([false, false, true, true, false])
+    expect(headers.map((header) => /numeric/.test(header.className))).toEqual([false, false, true, true, false, false])
   })
 
   it('keeps the rows in the order received', () => {

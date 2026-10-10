@@ -23,6 +23,7 @@ export const listCopy = {
     price: 'Precio',
     stock: 'Stock',
     status: 'Estado',
+    actions: 'Acciones',
   },
   stock: {
     'in-stock': 'En stock',
