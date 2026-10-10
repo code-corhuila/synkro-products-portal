@@ -19,7 +19,7 @@ function answerFromService(products: Page<ProductResponse> = productsPage([mouse
 }
 
 function productsRequests() {
-  return apiClient.request.mock.calls.filter(([path]) => path === '/api/v1/products')
+  return apiClient.request.mock.calls.filter(([path, options]) => path === '/api/v1/products' && options?.query?.limit !== 1)
 }
 
 describe('ProductsPage', () => {
@@ -27,12 +27,12 @@ describe('ProductsPage', () => {
     apiClient.request.mockReset()
   })
 
-  it('shows the Products heading', () => {
+  it('shows the Productos heading', () => {
     answerFromService()
 
     render(<ProductsPage />)
 
-    expect(screen.getByRole('heading', { name: 'Products' })).toBeInTheDocument()
+    expect(screen.getByRole('heading', { name: 'Productos' })).toBeInTheDocument()
   })
 
   it('shows a loading notice first', () => {
