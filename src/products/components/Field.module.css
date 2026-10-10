@@ -59,8 +59,9 @@
   cursor: not-allowed;
 }
 
-/* Prices are numbers to scan and compare: mono, right-aligned. */
-.field input[inputmode='decimal'] {
+/* Prices and quantities are numbers to scan and compare: mono, right-aligned. */
+.field input[inputmode='decimal'],
+.field input[data-numeric] {
   font-family: var(--font-family-mono);
   font-variant-numeric: tabular-nums;
   text-align: right;

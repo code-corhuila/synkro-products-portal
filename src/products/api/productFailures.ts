@@ -30,7 +30,8 @@ const FIELD_OF_ADJUSTMENT_PROPERTY: Record<string, AdjustmentField> = {
 }
 
 // A 422 about the delta means the stock changed since the form was opened, so it
-// is shown on the quantity field; any other 422 (a reused key) is the form's.
+// is shown on the quantity field, and the list is stale; any other 422 (a reused
+// key) is the form's.
 export function toAdjustmentFailure(error: unknown): FormFailure<AdjustmentField> {
   return toFormFailure(error, {
     title: managementCopy.adjust.notAdjusted,
@@ -40,7 +41,7 @@ export function toAdjustmentFailure(error: unknown): FormFailure<AdjustmentField
       404: productGone,
       422: (hostError) =>
         detailsOf(hostError).some(({ field }) => field === 'delta')
-          ? { fieldErrors: { quantity: managementCopy.adjust.stockChanged }, alert: null }
+          ? { fieldErrors: { quantity: managementCopy.adjust.stockChanged }, alert: null, outdated: true }
           : alertOnly(managementCopy.adjust.notAdjusted, messageOf(hostError)),
     },
   })
@@ -62,5 +63,5 @@ function categoryNotFound(): CreateProductFailure {
 }
 
 function productGone<Field extends string>(): FormFailure<Field> {
-  return { ...alertOnly<Field>(managementCopy.gone), gone: true }
+  return { ...alertOnly<Field>(managementCopy.gone), outdated: true }
 }

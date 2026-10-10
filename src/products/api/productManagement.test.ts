@@ -99,7 +99,7 @@ describe('product management calls', () => {
 
         expect(await updateProduct('p-1', update)).toEqual({
           ok: false,
-          failure: { fieldErrors: {}, alert: { title: managementCopy.gone }, gone: true },
+          failure: { fieldErrors: {}, alert: { title: managementCopy.gone }, outdated: true },
         })
       })
 
@@ -108,7 +108,7 @@ describe('product management calls', () => {
 
         expect(await updateProduct('p-1', update)).toEqual({
           ok: false,
-          failure: { fieldErrors: {}, alert: { title: managementCopy.gone }, gone: true },
+          failure: { fieldErrors: {}, alert: { title: managementCopy.gone }, outdated: true },
         })
       })
     })
@@ -178,7 +178,7 @@ describe('product management calls', () => {
 
       expect(await deactivateProduct('p-1')).toEqual({
         ok: false,
-        failure: { fieldErrors: {}, alert: { title: managementCopy.gone }, gone: true },
+        failure: { fieldErrors: {}, alert: { title: managementCopy.gone }, outdated: true },
       })
     })
 
@@ -252,7 +252,7 @@ describe('product management calls', () => {
 
       expect(await createStockAdjustment('p-1', adjustment, KEY)).toEqual({
         ok: false,
-        failure: { fieldErrors: { quantity: managementCopy.adjust.stockChanged }, alert: null },
+        failure: { fieldErrors: { quantity: managementCopy.adjust.stockChanged }, alert: null, outdated: true },
       })
     })
 
@@ -275,7 +275,7 @@ describe('product management calls', () => {
 
       expect(await createStockAdjustment('p-1', adjustment, KEY)).toEqual({
         ok: false,
-        failure: { fieldErrors: {}, alert: { title: managementCopy.gone }, gone: true },
+        failure: { fieldErrors: {}, alert: { title: managementCopy.gone }, outdated: true },
       })
     })
 

@@ -4,14 +4,14 @@ import { deferred } from '../../test-doubles/productsFixtures'
 import type { FormFailure, Result } from '../model/formFailure'
 import { DeactivationDialog } from './DeactivationDialog'
 
-const gone: FormFailure = { fieldErrors: {}, alert: { title: 'El producto ya no existe' }, gone: true }
+const gone: FormFailure = { fieldErrors: {}, alert: { title: 'El producto ya no existe' }, outdated: true }
 const broke: FormFailure = {
   fieldErrors: {},
   alert: { title: 'No se pudo desactivar el producto.', detail: 'Something broke' },
 }
 
 function renderDialog(request: () => Promise<Result<unknown>>) {
-  const handlers = { onDeactivated: vi.fn(), onGone: vi.fn(), onCancel: vi.fn() }
+  const handlers = { onDeactivated: vi.fn(), onOutdated: vi.fn(), onCancel: vi.fn() }
   const user = userEvent.setup()
   render(
     <DeactivationDialog
@@ -85,12 +85,12 @@ describe('DeactivationDialog', () => {
   })
 
   it('shows the message and tells the page when the service says it no longer exists', async () => {
-    const { user, onGone, onDeactivated } = renderDialog(() => Promise.resolve({ ok: false, failure: gone }))
+    const { user, onOutdated, onDeactivated } = renderDialog(() => Promise.resolve({ ok: false, failure: gone }))
 
     await user.click(confirm())
 
     expect(await screen.findByRole('alert')).toHaveTextContent('El producto ya no existe')
-    expect(onGone).toHaveBeenCalledOnce()
+    expect(onOutdated).toHaveBeenCalledOnce()
     expect(onDeactivated).not.toHaveBeenCalled()
     expect(screen.getByRole('dialog')).toBeInTheDocument()
   })
