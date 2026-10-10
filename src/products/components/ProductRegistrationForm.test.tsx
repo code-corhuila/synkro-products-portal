@@ -349,7 +349,7 @@ describe('ProductRegistrationForm', () => {
       await screen.findByRole('alert')
       await user.click(submitButton())
       await screen.findByRole('alert')
-      await user.type(screen.getByLabelText('Precio'), '0')
+      await user.type(screen.getByLabelText('Precio'), '5')
       await user.click(submitButton())
       await screen.findByRole('alert')
 
