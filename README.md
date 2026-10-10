@@ -66,29 +66,56 @@ src/
 
 ## Products list (`/products`)
 
-Filters the catalogue by name (partial, submitted with **Search**), category and status, and
-pages 20 products at a time. Access by role (ADMIN, INVENTORY) belongs to the host.
+A header with "Nuevo producto", three summary tiles, and the "Catálogo" card: filters above a table of
+20 products a page, and its pagination. Access by role (ADMIN, INVENTORY) belongs to the host. Everything
+the user reads is Spanish and lives in `model/listCopy.ts` (the registration form's is in
+`model/registrationCopy.ts`); code, tests and comments stay in English.
 
-- **Four states:** loading, error with a retry that repeats the same request (the filters stay),
-  empty, and data.
+- **Columns:** Producto, Categoría (badge), Precio, Stock (number and badge), Estado (badge), in the
+  wireframe's order. The Actions column belongs to the story that adds editing and deactivating.
+  `model/tableColumns.ts` lists them once, so the table and its skeleton always have the same shape.
+- **Stock state:** only *En stock* (`stock > 0`) and *Agotado* (`stock === 0`), in
+  `model/stockState.ts`. *Stock bajo* needs the worker's threshold and belongs to the stock alerts.
+- **Badges never rely on colour.** The design system pairs `-700` text with a `-50` background, which
+  measures 4.16:1 (success) and 3.90:1 (error) in the light theme, below the 4.5:1 minimum. So the label
+  keeps the ink colour, the tone lives in the background and in a dot (hollow for inactive), and the label
+  always says the state in words. The stock number is always next to its badge.
+- **Summary tiles:** *Productos activos* is `GET /products?active=true&limit=1` and *Agotados* is
+  `...&stockAtMost=0&limit=1`, both read from `meta.total`; *Categorías activas* counts the active
+  categories the page already loads, with no request of its own. Each tile loads and fails on its own:
+  a skeleton while loading, `—` with a retry named after the tile ("Reintentar: Agotados") on failure.
+  After a product is registered the two product tiles reload. A tile failing never affects the table, and
+  the table failing never affects the tiles (`pages/useSummary.ts`).
+- **States:** loading shows skeleton tiles and skeleton rows with the table's columns, and a hidden
+  `role="status"` says "Cargando productos…". The shimmer stops under `prefers-reduced-motion`. The
+  table failing is an inline alert with "Reintentar". An empty catalogue says "Aún no hay productos
+  registrados" with a "Nuevo producto" button; filters that match nothing say "Ningún producto coincide
+  con estos filtros" and offer no button. The empty-state button is *secondary*: the header's action
+  is the view's one primary, and it stays visible, so nothing moves when data arrives.
+- **Table:** Precio and Stock are right-aligned, mono, with tabular numerals. The table scrolls inside a
+  labelled, focusable region, so a narrow screen never scrolls the page sideways. Sorting by header and
+  row selection are in the design system but the API has no sorting and there are no bulk actions yet.
+- **Filters:** Nombre (partial, submitted with **Buscar** or Enter), Categoría and Estado (applied on
+  change). They reuse `Field` with `required={false}`: a filter is not a required field.
 - **Categories:** `ProductResponse` carries only `categoryId`. The categories list loads once when the
   screen opens and names each product's category. It is a separate request, so the table keeps its
-  rows when categories fail; the category column then shows `Loading…` or `Unavailable`, and
-  `Unknown category` for an id the list does not contain.
+  rows when categories fail; the category column then shows `Cargando…` or `No disponible`, and
+  `Categoría desconocida` for an id the list does not contain.
 - **Newest request wins:** a new request aborts the one in flight, and an answer that arrives after
-  it was superseded is ignored. Leaving the screen aborts the request too (`pages/useLoad.ts`).
+  it was superseded is ignored. Leaving the screen aborts the request too (`pages/useLoad.ts`). The
+  tiles use the same hook.
 - **Money:** `priceCents` is an integer count of minor units of COP (1/100). `model/money.ts`
   formats it with integer arithmetic only, as `COP 1.234,56` (Colombian separators).
 
-Out of scope here: editing or deactivating products, stock adjustments, the stock lookup
-and the stock alerts.
+Out of scope here: editing or deactivating products, the categories section, stock adjustments, the
+stock lookup and the stock alerts.
 
 ## Registering a product (`/products`)
 
 "Nuevo producto" opens the registration form as a panel inside the list page (registration has no
 route of its own, `navigation-map.md`). It posts `{ name, priceCents, categoryId }` to
 `POST /api/v1/products` through `shell/apiClient`; stock is never sent, a new product starts at 0.
-All user-facing text is in Spanish; the list is still in English until its translation lands.
+All user-facing text is in Spanish.
 
 - **Price:** `model/price.ts` reads the typed text with string splitting and `BigInt`, never a float.
   Accepted: digits with at most one `.` or `,` followed by one or two digits (`0.07` is 7, `12,5` is
@@ -118,7 +145,10 @@ it. CSS Modules scope each class name, and a remote's stylesheet lands in the ho
 global class could collide with the host's or another portal's. The host publishes the tokens and follows the
 operating system's light or dark theme, so no component branches on the theme except the input background
 the design system asks to sit on the page colour in dark. The host's `Button` is not shared: `components/Button.tsx` is
-this portal's own. `build.cssCodeSplit: false` keeps one stylesheet that the remote entry loads, and the
+this portal's own (primary or secondary, regular or small). The host publishes no border token, so the table's
+row lines use `--color-text-disabled`. Text sits on a card (`--color-bg-card`), where the ink and the muted text
+measure above 4.5:1 in both themes; error text stays on a card too, because `--color-error-700` on the canvas
+is 4.34:1. `build.cssCodeSplit: false` keeps one stylesheet that the remote entry loads, and the
 build test still fails on any unresolved `__v__css__` placeholder.
 
 ## Running locally
