@@ -84,6 +84,12 @@ describe('ProductFilterBar', () => {
     expect(onRetryCategories).toHaveBeenCalledOnce()
   })
 
+  it('shows the status the filters hold, Active or Inactive', () => {
+    renderBar({ filters: { page: 1, active: false } })
+
+    expect(screen.getByLabelText('Status')).toHaveValue('inactive')
+  })
+
   it('keeps the name the person typed in the field', () => {
     renderBar({ filters: { page: 1, name: 'mouse' } })
 
