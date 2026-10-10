@@ -27,6 +27,7 @@ export const listCopy = {
   },
   stock: {
     'in-stock': 'En stock',
+    'low-stock': 'Stock bajo',
     'out-of-stock': 'Agotado',
   },
   status: {

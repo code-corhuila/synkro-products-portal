@@ -1,7 +1,10 @@
-export type StockState = 'in-stock' | 'out-of-stock'
+export type StockState = 'in-stock' | 'low-stock' | 'out-of-stock'
 
-// "Stock bajo" needs the worker's threshold and belongs to the stock alerts, so
-// the list only tells apart a product that can be sold from one that cannot.
-export function stockStateOf(stock: number): StockState {
-  return stock > 0 ? 'in-stock' : 'out-of-stock'
+// Stock zero is always "Agotado". The worker's threshold is global and the portal
+// does not know it, so "Stock bajo" is read from the worker's own verdict: the
+// product has an open alert and still has stock. Without alerts to go by (they
+// have not arrived, or the caller may not read them) it is "En stock".
+export function stockStateOf(stock: number, hasOpenAlert = false): StockState {
+  if (stock <= 0) return 'out-of-stock'
+  return hasOpenAlert ? 'low-stock' : 'in-stock'
 }
