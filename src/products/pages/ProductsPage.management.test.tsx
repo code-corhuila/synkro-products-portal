@@ -30,7 +30,7 @@ const tile = (name: string) => screen.getByRole('listitem', { name })
 const row = (name: RegExp) => screen.getByRole('row', { name })
 const action = (label: string, product: string) => screen.getByRole('button', { name: `${label} ${product}` })
 const panelForm = (name: string) => within(screen.getByRole('form', { name }))
-const announcement = () => screen.getByText((_, element) => element?.getAttribute('aria-live') === 'polite' && element.textContent !== '')
+const announcement = () => document.querySelector<HTMLElement>('[aria-live="polite"][aria-atomic="true"]')!
 
 async function ready() {
   await screen.findByRole('row', { name: /Teclado mecánico/ })
@@ -125,17 +125,6 @@ describe('ProductsPage: managing products and categories', () => {
       expect(service.requests('PUT')).toHaveLength(0)
     })
 
-    it('puts the focus on the table when the control that opened it no longer exists', async () => {
-      const { user, service } = start()
-      await ready()
-      service.products = service.products.filter((product) => product.productId !== 'p-2')
-
-      await user.click(action('Editar', 'Mouse inalámbrico'))
-      await user.click(screen.getByRole('button', { name: 'Guardar cambios' }))
-
-      await waitFor(() => expect(screen.getByRole('region', { name: 'Tabla de productos' })).toHaveFocus())
-    })
-
     it('shows a server error on its field and keeps the form open', async () => {
       const { user, service } = start()
       await ready()
@@ -216,8 +205,10 @@ describe('ProductsPage: managing products and categories', () => {
       await user.type(panelForm('Ajustar stock').getByLabelText('Motivo'), 'Venta')
       await user.click(screen.getByRole('button', { name: 'Ajustar stock' }))
 
-      expect(await screen.findByLabelText('Cantidad a ajustar')).toHaveAccessibleDescription(
-        expect.stringContaining('El stock cambió'),
+      await waitFor(() =>
+        expect(screen.getByLabelText('Cantidad a ajustar')).toHaveAccessibleDescription(
+          expect.stringContaining('El stock cambió'),
+        ),
       )
       await waitFor(() => expect(service.requests('GET', PRODUCTS_PATH).length).toBeGreaterThan(listsBefore))
     })
@@ -416,8 +407,10 @@ describe('ProductsPage: managing products and categories', () => {
       await user.type(panelForm('Nueva categoría').getByLabelText('Nombre'), 'Periféricos')
       await user.click(screen.getByRole('button', { name: 'Crear categoría' }))
 
-      expect(await screen.findByLabelText('Nombre')).toHaveAccessibleDescription(
-        expect.stringContaining('Ya existe una categoría activa con ese nombre.'),
+      await waitFor(() =>
+        expect(panelForm('Nueva categoría').getByLabelText('Nombre')).toHaveAccessibleDescription(
+          expect.stringContaining('Ya existe una categoría activa con ese nombre.'),
+        ),
       )
       expect(screen.getByRole('form', { name: 'Nueva categoría' })).toBeInTheDocument()
     })

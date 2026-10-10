@@ -6,9 +6,12 @@ import { Pagination } from './Pagination'
 import styles from './ProductListBody.module.css'
 import { ProductsTable } from './ProductsTable'
 import { ProductsTableSkeleton } from './ProductsTableSkeleton'
+import type { RowActionHandlers } from './RowActions'
 
 interface ProductListBodyProps {
   view: ListView
+  // What the row actions do; undefined when the rows offer none.
+  actions?: RowActionHandlers
   onRetry: () => void
   onPageChange: (page: number) => void
   // Opens the registration form from the empty state; undefined while it cannot open.
@@ -16,7 +19,7 @@ interface ProductListBodyProps {
 }
 
 // The four states of the list: loading, error with retry, empty, and data.
-export function ProductListBody({ view, onRetry, onPageChange, onRegister }: ProductListBodyProps) {
+export function ProductListBody({ view, actions, onRetry, onPageChange, onRegister }: ProductListBodyProps) {
   switch (view.status) {
     case 'loading':
       return (
@@ -42,7 +45,7 @@ export function ProductListBody({ view, onRetry, onPageChange, onRegister }: Pro
     case 'data':
       return (
         <>
-          <ProductsTable rows={view.rows} />
+          <ProductsTable rows={view.rows} actions={actions} />
           <Pagination meta={view.meta} onPageChange={onPageChange} />
         </>
       )

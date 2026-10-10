@@ -24,7 +24,7 @@ export function ListEmpty({ hasFilters, onRegister }: ListEmptyProps) {
     <div className={styles.empty}>
       <p className={styles.message}>{listCopy.emptyCatalogue}</p>
       {onRegister && (
-        <Button variant="secondary" onClick={onRegister}>
+        <Button variant="secondary" data-opener="register" onClick={onRegister}>
           {registrationCopy.openAction}
         </Button>
       )}
