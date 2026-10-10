@@ -18,6 +18,10 @@ export default defineConfig(({ mode }) => {
       target: 'esnext',
       modulePreload: false,
       cssCodeSplit: false,
+      // The federation plugin rewrites its css placeholders only inside '' or "" quotes,
+      // and the minifier writes them as template literals, so the remote entry breaks
+      // without this. Revisit when the plugin or the bundler changes.
+      minify: false,
     },
     preview: { port: 5175, strictPort: true },
     test: {
