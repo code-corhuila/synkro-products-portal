@@ -1,4 +1,5 @@
 import type { CategoryResponse } from './category'
+import { listCopy } from './listCopy'
 import type { Loadable } from './loadable'
 import type { Page, PageMeta } from './page'
 import { toProductRow, type ProductResponse, type ProductRow } from './product'
@@ -9,8 +10,6 @@ export type ListView =
   | { status: 'error' }
   | { status: 'empty'; meta: PageMeta }
   | { status: 'data'; rows: ProductRow[]; meta: PageMeta }
-
-const UNKNOWN_CATEGORY = 'Unknown category'
 
 // Products and categories are separate requests, so the table keeps showing
 // its rows while the categories load or after they failed.
@@ -31,12 +30,12 @@ export function toListView(
 function labelForCategories(categories: Loadable<CategoryResponse[]>): (categoryId: string) => string {
   switch (categories.status) {
     case 'loading':
-      return () => 'Loading…'
+      return () => listCopy.categoryLabel.loading
     case 'error':
-      return () => 'Unavailable'
+      return () => listCopy.categoryLabel.unavailable
     case 'ready': {
       const names = new Map(categories.value.map((category) => [category.categoryId, category.name]))
-      return (categoryId) => names.get(categoryId) ?? UNKNOWN_CATEGORY
+      return (categoryId) => names.get(categoryId) ?? listCopy.categoryLabel.unknown
     }
   }
 }

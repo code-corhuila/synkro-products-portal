@@ -1,6 +1,9 @@
+import { listCopy } from '../model/listCopy'
 import type { ListView } from '../model/productList'
 import { Pagination } from './Pagination'
+import styles from './ProductListBody.module.css'
 import { ProductsTable } from './ProductsTable'
+import { ProductsTableSkeleton } from './ProductsTableSkeleton'
 
 interface ProductListBodyProps {
   view: ListView
@@ -12,7 +15,14 @@ interface ProductListBodyProps {
 export function ProductListBody({ view, onRetry, onPageChange }: ProductListBodyProps) {
   switch (view.status) {
     case 'loading':
-      return <p role="status">Loading products…</p>
+      return (
+        <>
+          <p role="status" className={styles.visuallyHidden}>
+            {listCopy.loading}
+          </p>
+          <ProductsTableSkeleton />
+        </>
+      )
 
     case 'error':
       return (
