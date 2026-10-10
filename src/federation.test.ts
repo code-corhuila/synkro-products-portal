@@ -65,4 +65,11 @@ describe('built remote entry', () => {
     const entry = readFileSync(join(outDir, 'assets', 'remoteEntry.js'), 'utf8')
     expect(entry).toContain('"./App"')
   })
+
+  // The federation plugin only rewrites its css placeholders inside '' or "" quotes;
+  // a template literal (backticks) leaves them unresolved and breaks every exposed module.
+  it('leaves no css placeholder unresolved, whatever the quote style', () => {
+    const entry = readFileSync(join(outDir, 'assets', 'remoteEntry.js'), 'utf8')
+    expect(entry).not.toContain('__v__css__')
+  })
 })
