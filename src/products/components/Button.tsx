@@ -1,7 +1,7 @@
-import type { ComponentPropsWithoutRef } from 'react'
+import type { ComponentProps } from 'react'
 import styles from './Button.module.css'
 
-interface ButtonProps extends Omit<ComponentPropsWithoutRef<'button'>, 'className'> {
+interface ButtonProps extends Omit<ComponentProps<'button'>, 'className'> {
   variant?: 'primary' | 'secondary'
 }
 
