@@ -57,6 +57,7 @@ export const listCopy = {
   },
 
   failed: 'No se pudieron cargar los productos.',
+  lowStockCheckFailed: 'No se pudo comprobar el stock bajo. La lista sigue disponible.',
   retry: 'Reintentar',
   emptyCatalogue: 'Aún no hay productos registrados',
   noMatch: 'Ningún producto coincide con estos filtros',

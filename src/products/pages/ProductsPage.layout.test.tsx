@@ -33,6 +33,8 @@ const answer = <T,>(value: T | 'fail') => (value === 'fail' ? Promise.reject(new
 const totalPage = (total: number) => ({ data: [], meta: { page: 1, limit: 1, total, totalPages: total } })
 
 apiClient.request.mockImplementation((path: string, options) => {
+  // No product is low on stock here: the open alerts are an empty list.
+  if (path === '/api/v1/stock-alerts') return Promise.resolve({ data: [], meta: { page: 1, limit: 100, total: 0, totalPages: 0 } })
   if (path === CATEGORIES_PATH) {
     return answer(service.categories === 'fail' ? 'fail' : categoriesPage(service.categories))
   }
