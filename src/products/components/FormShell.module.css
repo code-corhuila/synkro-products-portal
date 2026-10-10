@@ -1,4 +1,4 @@
-/* The registration panel: a card with the design system's large-panel radius.
+/* The panel of every form on the page: a card with the design system's large-panel radius.
    The host no longer restyles a portal's headings, paragraphs or code, so the
    form styles its own title, hints and errors. */
 .form {

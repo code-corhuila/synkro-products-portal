@@ -11,6 +11,8 @@ interface CategoryFieldProps {
   value: string
   // A message about this field from validation or from the service.
   error: string | undefined
+  // Context for the field that is not an error (why it starts empty).
+  hint?: string
   selectRef: Ref<HTMLSelectElement>
   onChange: (categoryId: string) => void
   onRetry: () => void
@@ -19,7 +21,7 @@ interface CategoryFieldProps {
 // Only active categories can receive a product. The categories are the ones the
 // list already loaded; when they failed, the field says so and offers a retry,
 // and it stays focusable so that message is reachable from the keyboard.
-export function CategoryField({ id, categories, value, error, selectRef, onChange, onRetry }: CategoryFieldProps) {
+export function CategoryField({ id, categories, value, error, hint, selectRef, onChange, onRetry }: CategoryFieldProps) {
   const active = categories.status === 'ready' ? categories.value.filter((category) => category.active) : []
   const unavailable = unavailableMessage(categories, active)
 
@@ -27,6 +29,7 @@ export function CategoryField({ id, categories, value, error, selectRef, onChang
     <Field
       id={id}
       label={registrationCopy.categoryLabel}
+      hint={hint}
       error={unavailable ?? error}
       after={
         categories.status === 'error' && (

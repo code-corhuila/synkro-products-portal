@@ -1,4 +1,4 @@
-import { tableColumns } from '../model/tableColumns'
+import { tableColumns, type TableColumn } from '../model/tableColumns'
 import styles from './ProductsTable.module.css'
 import { ProductsTableHead } from './ProductsTableHead'
 import { Skeleton } from './Skeleton'
@@ -18,7 +18,7 @@ export function ProductsTableSkeleton() {
           {Array.from({ length: SKELETON_ROWS }, (_, row) => (
             <tr key={row}>
               {tableColumns.map((column) => (
-                <td key={column.id} className={column.numeric ? styles.numeric : undefined}>
+                <td key={column.id} className={cellClass(column)}>
                   <Skeleton shape={BADGE_COLUMNS.includes(column.id) ? 'badge' : 'text'} />
                 </td>
               ))}
@@ -28,4 +28,9 @@ export function ProductsTableSkeleton() {
       </table>
     </div>
   )
+}
+
+function cellClass({ numeric, alignEnd }: TableColumn): string | undefined {
+  if (numeric) return styles.numeric
+  return alignEnd ? styles.actionsCell : undefined
 }
