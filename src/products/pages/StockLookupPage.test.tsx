@@ -220,6 +220,15 @@ describe('StockLookupPage', () => {
       expect(await screen.findByRole('row', { name: /Teclado mecánico/ })).toBeInTheDocument()
     })
 
+    it('recovers the tiles with the retry of En stock, which needs both counts', async () => {
+      const { user } = start({ before: failOutOfStockCount })
+
+      await user.click(await screen.findByRole('button', { name: 'Reintentar: En stock' }))
+
+      await waitFor(() => expect(within(tile('En stock')).getByText('2')).toBeInTheDocument())
+      expect(within(tile('Agotados')).getByText('1')).toBeInTheDocument()
+    })
+
     it('recovers the tiles with the retry of Agotados', async () => {
       const { user } = start({ before: failOutOfStockCount })
 
