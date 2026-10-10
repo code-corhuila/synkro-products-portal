@@ -30,24 +30,24 @@ describe('toListView', () => {
     expect(view.status).toBe('data')
     if (view.status !== 'data') return
     expect(view.rows.map((row) => row.name)).toEqual(['Wireless mouse', 'Mechanical keyboard'])
-    expect(view.rows[0]).toMatchObject({ price: 'COP 1.234,56', stock: 7, category: 'Peripherals', active: true })
+    expect(view.rows[0]).toMatchObject({ price: 'COP 1.234,56', stock: 7, stockState: 'in-stock', category: 'Peripherals', active: true })
   })
 
-  it('shows a category the loaded list does not know as "Unknown category"', () => {
+  it('shows a category the loaded list does not know as "Categoría desconocida"', () => {
     const view = toListView(ready(productsPage([keyboard])), ready([peripherals]))
 
-    expect(view.status === 'data' && view.rows[0].category).toBe('Unknown category')
+    expect(view.status === 'data' && view.rows[0].category).toBe('Categoría desconocida')
   })
 
   it('shows the category as loading while the categories are still loading', () => {
     const view = toListView(ready(productsPage([mouse])), loading)
 
-    expect(view.status === 'data' && view.rows[0].category).toBe('Loading…')
+    expect(view.status === 'data' && view.rows[0].category).toBe('Cargando…')
   })
 
   it('shows the category as unavailable when the categories failed, and still shows the products', () => {
     const view = toListView(ready(productsPage([mouse])), failed)
 
-    expect(view.status === 'data' && view.rows[0]).toMatchObject({ name: 'Wireless mouse', category: 'Unavailable' })
+    expect(view.status === 'data' && view.rows[0]).toMatchObject({ name: 'Wireless mouse', category: 'No disponible' })
   })
 })

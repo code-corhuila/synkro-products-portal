@@ -52,7 +52,7 @@ describe('ProductsPage', () => {
     expect(within(mouseRow).getByText('COP 1.234,56')).toBeInTheDocument()
     expect(within(mouseRow).getByText('Peripherals')).toBeInTheDocument()
     const keyboardRow = screen.getByRole('row', { name: /Mechanical keyboard/ })
-    expect(within(keyboardRow).getByText('Unknown category')).toBeInTheDocument()
+    expect(within(keyboardRow).getByText('Categoría desconocida')).toBeInTheDocument()
   })
 
   it('shows the empty notice when no product matches', async () => {
@@ -130,7 +130,7 @@ describe('ProductsPage', () => {
     render(<ProductsPage />)
 
     const mouseRow = await screen.findByRole('row', { name: /Wireless mouse/ })
-    expect(within(mouseRow).getByText('Unavailable')).toBeInTheDocument()
+    expect(within(mouseRow).getByText('No disponible')).toBeInTheDocument()
     expect(screen.getByText('Categories could not be loaded.')).toBeInTheDocument()
 
     await user.click(screen.getByRole('button', { name: 'Retry categories' }))

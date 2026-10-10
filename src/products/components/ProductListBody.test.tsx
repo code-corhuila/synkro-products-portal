@@ -9,6 +9,7 @@ const row = {
   name: 'Wireless mouse',
   price: 'COP 1.234,56',
   stock: 7,
+  stockState: 'in-stock' as const,
   category: 'Peripherals',
   active: true,
 }
@@ -21,11 +22,14 @@ function renderBody(view: ListView) {
 }
 
 describe('ProductListBody', () => {
-  it('shows a loading notice while the products load', () => {
-    renderBody({ status: 'loading' })
+  it('shows a skeleton shaped like the table and says "Cargando productos…" to screen readers', () => {
+    const { container } = render(
+      <ProductListBody view={{ status: 'loading' }} onRetry={vi.fn()} onPageChange={vi.fn()} />,
+    )
 
-    expect(screen.getByRole('status')).toHaveTextContent('Loading products…')
+    expect(screen.getByRole('status')).toHaveTextContent('Cargando productos…')
     expect(screen.queryByRole('table')).not.toBeInTheDocument()
+    expect(container.querySelectorAll('tbody tr').length).toBeGreaterThan(1)
   })
 
   it('shows the error with a retry that repeats the request', async () => {
