@@ -175,7 +175,9 @@ describe('ProductsPage: registering a product', () => {
       await fillAndSubmit(user)
 
       const row = await screen.findByRole('row', { name: /USB webcam/ })
-      expect(within(row).getAllByRole('cell').map((cell) => cell.textContent)).toContain('0')
+      const stockCell = within(row).getAllByRole('cell')[3]
+      expect(within(stockCell).getByText('0')).toBeInTheDocument()
+      expect(within(stockCell).getByText('Agotado')).toBeInTheDocument()
     })
 
     it('posts the product the user typed, with the price in minor units', async () => {
