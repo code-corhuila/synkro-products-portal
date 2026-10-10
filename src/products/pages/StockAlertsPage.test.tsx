@@ -49,7 +49,6 @@ function start(overrides: { alerts?: StockAlertResponse[]; products?: ProductRes
 
 const alertReads = (service: CatalogueService) => service.requests('GET', ALERTS_PATH)
 const productReads = (service: CatalogueService) => service.requests('GET', /\/api\/v1\/products\/[^/]+$/)
-const rowOf = (name: RegExp) => screen.getByRole('row', { name })
 
 describe('StockAlertsPage', () => {
   beforeEach(() => {

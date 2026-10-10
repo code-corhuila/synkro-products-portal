@@ -5,7 +5,7 @@ import { tableColumns, type TableColumn } from '../model/tableColumns'
 import { Badge } from './Badge'
 import { RowActions, type RowActionHandlers } from './RowActions'
 import styles from './ProductsTable.module.css'
-import { ProductsTableHead } from './ProductsTableHead'
+import { TableRegion } from './TableRegion'
 
 interface ProductsTableProps {
   rows: ProductRow[]
@@ -21,22 +21,17 @@ interface ProductsTableProps {
 // and it is where focus falls back to when the control that opened a panel is gone.
 export function ProductsTable({ rows, columns = tableColumns, actions, label = listCopy.tableRegion }: ProductsTableProps) {
   return (
-    <div role="region" aria-label={label} tabIndex={0} data-focus-fallback="catalogue" className={styles.scroller}>
-      <table className={styles.table}>
-        <ProductsTableHead columns={columns} />
-        <tbody>
-          {rows.map((row) => (
-            <tr key={row.productId}>
-              {columns.map((column) => (
-                <td key={column.id} className={cellClass(column)}>
-                  {cellContent(column.id, row, actions)}
-                </td>
-              ))}
-            </tr>
+    <TableRegion label={label} columns={columns} focusFallback="catalogue">
+      {rows.map((row) => (
+        <tr key={row.productId}>
+          {columns.map((column) => (
+            <td key={column.id} className={cellClass(column)}>
+              {cellContent(column.id, row, actions)}
+            </td>
           ))}
-        </tbody>
-      </table>
-    </div>
+        </tr>
+      ))}
+    </TableRegion>
   )
 }
 
