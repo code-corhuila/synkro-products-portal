@@ -78,8 +78,9 @@ export class CatalogueService {
 
   private page<T>(items: T[], page: number, limit: number) {
     const start = (page - 1) * limit
+    // A copy, as if it had crossed the wire: later changes to the service do not reach what a page already holds.
     return {
-      data: items.slice(start, start + limit),
+      data: structuredClone(items.slice(start, start + limit)),
       meta: { page, limit, total: items.length, totalPages: Math.ceil(items.length / limit) },
     }
   }
@@ -101,7 +102,9 @@ export class CatalogueService {
         (query.active === undefined || product.active === query.active) &&
         (query.stockAtMost === undefined || product.stock <= Number(query.stockAtMost)),
     )
-    return this.ok(this.page(matching, Number(query.page ?? 1), Number(query.limit ?? this.pageSize)))
+    // A count asks for a single row; a list gets the service page size.
+    const limit = Number(query.limit) === 1 ? 1 : this.pageSize
+    return this.ok(this.page(matching, Number(query.page ?? 1), limit))
   }
 
   private product(id: string, method: string, body: Record<string, unknown>) {
