@@ -11,10 +11,10 @@ export interface ProductResponse {
   active: boolean
 }
 
-// What the list screen filters and pages by. Empty values mean "no filter".
+// What the list screen filters and pages by. An unset or blank value means "no filter".
 export interface ProductFilters {
-  name: string
-  categoryId: string
+  name?: string
+  categoryId?: string
   active?: boolean
   page: number
 }
