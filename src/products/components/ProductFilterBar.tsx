@@ -1,7 +1,11 @@
 import { useState, type FormEvent } from 'react'
 import type { CategoryResponse } from '../model/category'
+import { listCopy } from '../model/listCopy'
 import type { Loadable } from '../model/loadable'
 import type { FilterChange, ProductFilters } from '../model/product'
+import { Button } from './Button'
+import { Field } from './Field'
+import styles from './ProductFilterBar.module.css'
 
 interface ProductFilterBarProps {
   filters: ProductFilters
@@ -13,6 +17,7 @@ interface ProductFilterBarProps {
 type StatusChoice = 'all' | 'active' | 'inactive'
 
 // Name is applied on submit (a search), the other two filters apply as soon as they change.
+// None of them is a required field.
 export function ProductFilterBar({ filters, categories, onChange, onRetryCategories }: ProductFilterBarProps) {
   const [nameDraft, setNameDraft] = useState(filters.name ?? '')
 
@@ -22,18 +27,20 @@ export function ProductFilterBar({ filters, categories, onChange, onRetryCategor
   }
 
   return (
-    <form role="search" onSubmit={submitName}>
-      <div>
-        <label htmlFor="product-name">Name</label>
-        <input
-          id="product-name"
-          type="text"
-          value={nameDraft}
-          onChange={(event) => setNameDraft(event.target.value)}
-          aria-describedby="product-name-hint"
-        />
-        <span id="product-name-hint">Partial match, case-insensitive</span>
-        <button type="submit">Search</button>
+    <form role="search" onSubmit={submitName} className={styles.filters}>
+      <div className={styles.name}>
+        <Field id="product-name" label={listCopy.filters.name} hint={listCopy.filters.nameHint} required={false}>
+          {(control) => (
+            <div className={styles.search}>
+              <div className={styles.grow}>
+                <input {...control} type="text" value={nameDraft} onChange={(event) => setNameDraft(event.target.value)} />
+              </div>
+              <Button type="submit" variant="secondary">
+                {listCopy.filters.search}
+              </Button>
+            </div>
+          )}
+        </Field>
       </div>
 
       <CategoryFilter
@@ -43,18 +50,19 @@ export function ProductFilterBar({ filters, categories, onChange, onRetryCategor
         onRetry={onRetryCategories}
       />
 
-      <div>
-        <label htmlFor="product-status">Status</label>
-        <select
-          id="product-status"
-          value={statusChoice(filters.active)}
-          onChange={(event) => onChange({ active: activeFrom(event.target.value as StatusChoice) })}
-        >
-          <option value="all">All</option>
-          <option value="active">Active</option>
-          <option value="inactive">Inactive</option>
-        </select>
-      </div>
+      <Field id="product-status" label={listCopy.filters.status} required={false}>
+        {(control) => (
+          <select
+            {...control}
+            value={statusChoice(filters.active)}
+            onChange={(event) => onChange({ active: activeFrom(event.target.value as StatusChoice) })}
+          >
+            <option value="all">{listCopy.filters.statusOptions.all}</option>
+            <option value="active">{listCopy.filters.statusOptions.active}</option>
+            <option value="inactive">{listCopy.filters.statusOptions.inactive}</option>
+          </select>
+        )}
+      </Field>
     </form>
   )
 }
@@ -67,37 +75,46 @@ interface CategoryFilterProps {
 }
 
 function CategoryFilter({ categoryId, categories, onChange, onRetry }: CategoryFilterProps) {
+  const failed = categories.status === 'error'
+
   return (
-    <div>
-      <label htmlFor="product-category">Category</label>
-      <select
-        id="product-category"
-        value={categoryId ?? ''}
-        disabled={categories.status !== 'ready'}
-        onChange={(event) => onChange({ categoryId: event.target.value || undefined })}
-      >
-        {categories.status === 'loading' && <option value="">Loading categories…</option>}
-        {categories.status === 'error' && <option value="">Categories unavailable</option>}
-        {categories.status === 'ready' && (
-          <>
-            <option value="">All categories</option>
-            {categories.value.map((category) => (
-              <option key={category.categoryId} value={category.categoryId}>
-                {category.name}
-              </option>
-            ))}
-          </>
-        )}
-      </select>
-      {categories.status === 'error' && (
-        <>
-          <p role="alert">Categories could not be loaded.</p>
-          <button type="button" onClick={onRetry}>
-            Retry categories
-          </button>
-        </>
+    <Field
+      id="product-category"
+      label={listCopy.filters.category}
+      required={false}
+      after={
+        failed && (
+          <div role="alert" className={styles.categoriesFailed}>
+            <p className={styles.failedMessage}>{listCopy.filters.categoriesFailed}</p>
+            <Button variant="secondary" onClick={onRetry}>
+              {listCopy.filters.retryCategories}
+            </Button>
+          </div>
+        )
+      }
+    >
+      {(control) => (
+        <select
+          {...control}
+          value={categoryId ?? ''}
+          disabled={categories.status !== 'ready'}
+          onChange={(event) => onChange({ categoryId: event.target.value || undefined })}
+        >
+          {categories.status === 'loading' && <option value="">{listCopy.filters.categoriesLoading}</option>}
+          {failed && <option value="">{listCopy.filters.categoriesUnavailable}</option>}
+          {categories.status === 'ready' && (
+            <>
+              <option value="">{listCopy.filters.allCategories}</option>
+              {categories.value.map((category) => (
+                <option key={category.categoryId} value={category.categoryId}>
+                  {category.name}
+                </option>
+              ))}
+            </>
+          )}
+        </select>
       )}
-    </div>
+    </Field>
   )
 }
 
