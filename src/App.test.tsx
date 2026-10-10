@@ -18,7 +18,7 @@ describe('App (the module the host mounts)', () => {
   })
 
   it('renders nothing for a route it does not serve', () => {
-    atPath('/stock')
+    atPath('/dashboard')
 
     const { container } = render(<App />)
 

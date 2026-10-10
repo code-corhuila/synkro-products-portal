@@ -1,21 +1,33 @@
+import { StockAlertsPage } from './products/pages/StockAlertsPage'
 import { ProductsPage } from './products/pages/ProductsPage'
+import { StockLookupPage } from './products/pages/StockLookupPage'
 import { resolveScreen } from './routes'
 
 describe('resolveScreen', () => {
-  it('serves the products list at /products', () => {
-    expect(resolveScreen('/products')?.type).toBe(ProductsPage)
+  it.each([
+    ['/products', ProductsPage],
+    ['/stock', StockLookupPage],
+    ['/stock-alerts', StockAlertsPage],
+  ])('serves the screen of %s', (path, screen) => {
+    expect(resolveScreen(path)?.type).toBe(screen)
   })
 
-  it('serves the products list with a trailing slash', () => {
-    expect(resolveScreen('/products/')?.type).toBe(ProductsPage)
+  it.each([
+    ['/products/', ProductsPage],
+    ['/stock/', StockLookupPage],
+    ['/stock-alerts/', StockAlertsPage],
+  ])('serves the screen of %s with a trailing slash', (path, screen) => {
+    expect(resolveScreen(path)?.type).toBe(screen)
   })
 
-  it('serves nothing for the other screens the host mounts on this app', () => {
-    expect(resolveScreen('/stock')).toBeNull()
-    expect(resolveScreen('/stock-alerts')).toBeNull()
-  })
+  it.each(['/', '/productsx', '/stockx', '/stock-alertsx', '/stock/alerts', '/products/1', '/stock-alerts/1', '/dashboard', '/stock//'])(
+    'serves nothing for %s',
+    (path) => {
+      expect(resolveScreen(path)).toBeNull()
+    },
+  )
 
-  it('does not match a path that only starts with products', () => {
-    expect(resolveScreen('/productsx')).toBeNull()
+  it('does not tell /stock from /stock-alerts by their common prefix', () => {
+    expect(resolveScreen('/stock')?.type).not.toBe(resolveScreen('/stock-alerts')?.type)
   })
 })

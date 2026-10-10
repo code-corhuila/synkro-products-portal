@@ -48,6 +48,11 @@ function requestProducts(query: ProductQuery, options: ListOptions): Promise<Pag
   })
 }
 
+// One product by id, which is how a screen that only holds ids (the alerts) learns a name.
+export function getProduct(productId: string, options: ListOptions = {}): Promise<ProductResponse> {
+  return apiClient.request<ProductResponse>(`${PRODUCTS_PATH}/${encodeURIComponent(productId)}`, { signal: options.signal })
+}
+
 export function listCategories(query: CategoryListQuery, options: ListOptions = {}): Promise<Page<CategoryResponse>> {
   return apiClient.request<Page<CategoryResponse>>(CATEGORIES_PATH, {
     query: { ...query },

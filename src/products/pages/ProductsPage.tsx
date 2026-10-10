@@ -2,24 +2,27 @@ import { useId, useRef, useState } from 'react'
 import { Button } from '../components/Button'
 import { CategoriesSection } from '../components/CategoriesSection'
 import { ProductFilterBar } from '../components/ProductFilterBar'
+import { LowStockNotice } from '../components/LowStockNotice'
 import { ProductListBody } from '../components/ProductListBody'
 import { ProductPanel } from '../components/ProductPanel'
 import type { RowActionHandlers } from '../components/RowActions'
 import { SummaryTiles } from '../components/SummaryTiles'
 import { categoriesCopy } from '../model/categoriesCopy'
 import type { CategoryResponse } from '../model/category'
+import { initialNameFilter } from '../model/initialFilters'
 import { listCopy } from '../model/listCopy'
 import { managementCopy } from '../model/managementCopy'
 import { openerKey, type RowAction } from '../model/openerKey'
 import { isPanelOpen, NO_PANEL, type Panel } from '../model/panel'
 import { toListView } from '../model/productList'
-import type { ProductResponse } from '../model/product'
+import type { ProductFilters, ProductResponse } from '../model/product'
 import { registrationCopy } from '../model/registrationCopy'
 import { toSummaryTiles } from '../model/summary'
 import styles from './ProductsPage.module.css'
 import { useAnnouncement } from './useAnnouncement'
 import { useCategories } from './useCategories'
 import { useFocusReturn } from './useFocusReturn'
+import { useOpenAlerts } from './useOpenAlerts'
 import { useProductList } from './useProductList'
 import { useSummary } from './useSummary'
 
@@ -29,12 +32,14 @@ import { useSummary } from './useSummary'
 // deactivations ask first in a dialog; only one of them is open at a time, so
 // while one is, the controls that open the others are unavailable.
 export function ProductsPage() {
-  const products = useProductList()
+  const [initialFilters] = useState<ProductFilters>(() => ({ page: 1, name: initialNameFilter(window.location.search) }))
+  const products = useProductList(initialFilters)
   const categories = useCategories()
+  const openAlerts = useOpenAlerts()
   const summary = useSummary()
   const announcement = useAnnouncement()
   const catalogueTitleId = useId()
-  const view = toListView(products.state, categories.state, products.filters)
+  const view = toListView(products.state, categories.state, products.filters, { lowStockIds: openAlerts.lowStockIds })
   const tiles = toSummaryTiles(summary.activeProducts.state, summary.outOfStock.state, categories.state)
 
   const root = useRef<HTMLElement>(null)
@@ -115,7 +120,7 @@ export function ProductsPage() {
         currentProduct={currentProduct}
         onRegistered={() => finish(registrationCopy.registered, products.reloadFromFirstPage, summary.reload)}
         onUpdated={() => finish(managementCopy.edit.updated, reloadProducts)}
-        onAdjusted={() => finish(managementCopy.adjust.adjusted, reloadProducts)}
+        onAdjusted={() => finish(managementCopy.adjust.adjusted, reloadProducts, openAlerts.reload)}
         onDeactivated={() => finish(managementCopy.deactivate.deactivated, reloadProducts)}
         onOutdated={reloadProducts}
         onClose={close}
@@ -131,6 +136,7 @@ export function ProductsPage() {
           onChange={products.updateFilters}
           onRetryCategories={categories.retry}
         />
+        {openAlerts.status === 'error' && <LowStockNotice onRetry={openAlerts.reload} />}
         <ProductListBody
           view={view}
           actions={rowActions}

@@ -2,13 +2,15 @@ import type { RequestOptions } from 'shell/apiClient'
 import { apiClient, hostError } from './shellApiClient'
 import type { CategoryResponse } from '../products/model/category'
 import type { ProductResponse } from '../products/model/product'
+import type { StockAlertResponse } from '../products/model/stockAlert'
 
 // Test data only: this file is excluded from the coverage gate and never shipped.
 export const PRODUCTS_PATH = '/api/v1/products'
 export const CATEGORIES_PATH = '/api/v1/products/categories'
+export const ALERTS_PATH = '/api/v1/stock-alerts'
 
 interface Rejection {
-  matches: (method: string, path: string) => boolean
+  matches: (method: string, path: string, options: RequestOptions) => boolean
   error: Error
 }
 
@@ -20,14 +22,26 @@ interface Rejection {
 export class CatalogueService {
   products: ProductResponse[]
   categories: CategoryResponse[]
+  alerts: StockAlertResponse[]
   private readonly pageSize: number
   private readonly seen = new Map<string, unknown>()
   private readonly rejections: Rejection[] = []
   private nextId = 100
 
-  constructor({ products, categories, pageSize = 20 }: { products: ProductResponse[]; categories: CategoryResponse[]; pageSize?: number }) {
+  constructor({
+    products,
+    categories,
+    alerts = [],
+    pageSize = 20,
+  }: {
+    products: ProductResponse[]
+    categories: CategoryResponse[]
+    alerts?: StockAlertResponse[]
+    pageSize?: number
+  }) {
     this.products = products.map((product) => ({ ...product }))
     this.categories = categories.map((category) => ({ ...category }))
+    this.alerts = alerts.map((alert) => ({ ...alert }))
     this.pageSize = pageSize
     apiClient.request.mockImplementation((path: string, options?: RequestOptions) => this.handle(path, options ?? {}))
   }
@@ -40,6 +54,11 @@ export class CatalogueService {
     })
   }
 
+  // Fails the next request the predicate accepts, whatever its path.
+  rejectNextWhere(matches: (method: string, path: string, options: RequestOptions) => boolean, status: number, error: string, message: string) {
+    this.rejections.push({ matches, error: hostError(status, { error, message }) })
+  }
+
   requests(method: string, path?: RegExp | string) {
     return apiClient.request.mock.calls.filter(([requestPath, options]) => {
       if ((options?.method ?? 'GET') !== method) return false
@@ -50,7 +69,7 @@ export class CatalogueService {
 
   private handle(path: string, options: RequestOptions): Promise<unknown> {
     const method = options.method ?? 'GET'
-    const index = this.rejections.findIndex((rejection) => rejection.matches(method, path))
+    const index = this.rejections.findIndex((rejection) => rejection.matches(method, path, options))
     if (index !== -1) return Promise.reject(this.rejections.splice(index, 1)[0].error)
 
     const body = (options.body ?? {}) as Record<string, unknown>
@@ -60,6 +79,7 @@ export class CatalogueService {
     if (path === CATEGORIES_PATH && method === 'POST') return this.once(key, () => this.createCategory(String(body.name)))
     if (path.startsWith(`${CATEGORIES_PATH}/`)) return this.category(path.slice(CATEGORIES_PATH.length + 1), method, body)
     if (path === PRODUCTS_PATH && method === 'GET') return this.listProducts(options.query ?? {})
+    if (path === ALERTS_PATH && method === 'GET') return this.listAlerts(options.query ?? {})
     if (path.endsWith('/stock-adjustments')) {
       const id = path.slice(PRODUCTS_PATH.length + 1, -'/stock-adjustments'.length)
       return this.once(key, () => this.adjust(id, Number(body.delta), String(body.reason)))
@@ -107,10 +127,16 @@ export class CatalogueService {
     return this.ok(this.page(matching, Number(query.page ?? 1), limit))
   }
 
+  private listAlerts(query: NonNullable<RequestOptions['query']>) {
+    const matching = this.alerts.filter((alert) => query.status === undefined || alert.status === query.status)
+    return this.ok(this.page(matching, Number(query.page ?? 1), Number(query.limit ?? this.pageSize)))
+  }
+
   private product(id: string, method: string, body: Record<string, unknown>) {
     const product = this.products.find((candidate) => candidate.productId === id)
     if (!product) return this.fail(404, 'NOT_FOUND', 'Product not found')
 
+    if (method === 'GET') return this.ok(structuredClone(product))
     if (method === 'DELETE') {
       product.active = false
       return this.ok({ ...product })

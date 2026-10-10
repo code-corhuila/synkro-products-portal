@@ -2,7 +2,7 @@ import type { ReactNode } from 'react'
 import styles from './Badge.module.css'
 
 interface BadgeProps {
-  tone: 'success' | 'error' | 'neutral'
+  tone: 'success' | 'warning' | 'error' | 'neutral'
   // A dot in the tone's colour next to the label. A plain label leaves it out.
   marker?: boolean
   children: ReactNode
