@@ -4,6 +4,7 @@ export const registrationCopy = {
   openAction: 'Nuevo producto',
   title: 'Nuevo producto',
   submit: 'Registrar producto',
+  submitting: 'Registrando…',
   cancel: 'Cancelar',
   retry: 'Reintentar',
   registered: 'Producto registrado',
@@ -28,6 +29,7 @@ export const registrationCopy = {
   categoryLoading: 'Cargando categorías…',
   categoryRequired: 'Elige una categoría.',
   categoryNotFound: 'La categoría no existe o está inactiva. Elige otra.',
+  categoriesUnavailable: 'Categorías no disponibles',
   categoriesFailed: 'No se pudieron cargar las categorías.',
   categoriesEmpty: 'No hay categorías activas. Crea una antes de registrar productos.',
 
