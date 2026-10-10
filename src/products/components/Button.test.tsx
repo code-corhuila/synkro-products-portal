@@ -19,4 +19,25 @@ describe('Button', () => {
 
     expect(screen.getByRole('button').className).not.toMatch(/small/)
   })
+
+  it.each(['primary', 'secondary', 'ghost', 'danger'] as const)('has a %s variant', (variant) => {
+    render(<Button variant={variant}>Acción</Button>)
+
+    expect(screen.getByRole('button').className).toMatch(new RegExp(variant))
+  })
+
+  it('keeps the compact size with the ghost and danger variants', () => {
+    render(
+      <>
+        <Button variant="ghost" size="small">
+          Editar
+        </Button>
+        <Button variant="danger" size="small">
+          Desactivar
+        </Button>
+      </>,
+    )
+
+    for (const button of screen.getAllByRole('button')) expect(button.className).toMatch(/small/)
+  })
 })
