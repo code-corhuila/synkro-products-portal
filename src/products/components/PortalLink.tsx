@@ -1,5 +1,6 @@
 import type { ComponentProps, MouseEvent } from 'react'
 import { navigateTo } from '../../navigation'
+import styles from './PortalLink.module.css'
 
 type PortalLinkProps = Omit<ComponentProps<'a'>, 'href'> & { href: string }
 
@@ -10,7 +11,7 @@ function isPlainLeftClick(event: MouseEvent<HTMLAnchorElement>): boolean {
 // A real link to another screen of the portal. A plain left click navigates
 // without a document load; a click with a modifier key, or a middle click, is
 // the browser's (a new tab), and the href makes that work.
-export function PortalLink({ href, onClick, ...rest }: PortalLinkProps) {
+export function PortalLink({ href, onClick, className, ...rest }: PortalLinkProps) {
   function handleClick(event: MouseEvent<HTMLAnchorElement>) {
     onClick?.(event)
     if (event.defaultPrevented || !isPlainLeftClick(event)) return
@@ -19,5 +20,6 @@ export function PortalLink({ href, onClick, ...rest }: PortalLinkProps) {
     navigateTo(href)
   }
 
-  return <a href={href} onClick={handleClick} {...rest} />
+  const classes = [styles.link, className].filter(Boolean).join(' ')
+  return <a href={href} className={classes} onClick={handleClick} {...rest} />
 }
