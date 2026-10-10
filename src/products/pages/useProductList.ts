@@ -21,5 +21,11 @@ export function useProductList() {
     setFilters((current) => ({ ...current, page }))
   }, [])
 
-  return { state, filters, updateFilters, goToPage, retry }
+  // The newest product is on the first page. A new object is a new key, so this
+  // asks again even when the list is already on the first page.
+  const reloadFromFirstPage = useCallback(() => {
+    setFilters((current) => ({ ...current, page: 1 }))
+  }, [])
+
+  return { state, filters, updateFilters, goToPage, reloadFromFirstPage, retry }
 }
