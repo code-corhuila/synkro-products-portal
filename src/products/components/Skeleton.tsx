@@ -2,7 +2,8 @@ import styles from './Skeleton.module.css'
 
 interface SkeletonProps {
   // text: a line of a cell. badge: the width of a badge. figure: a stat tile number.
-  shape?: 'text' | 'badge' | 'figure'
+  // chip: a category chip.
+  shape?: 'text' | 'badge' | 'figure' | 'chip'
 }
 
 // A placeholder block for content that is loading. It is decorative: whoever
