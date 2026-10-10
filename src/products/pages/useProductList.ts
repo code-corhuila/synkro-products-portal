@@ -1,9 +1,7 @@
 import { useCallback, useState } from 'react'
 import { listProducts } from '../api/productsApi'
-import type { ProductFilters } from '../model/product'
+import type { FilterChange, ProductFilters } from '../model/product'
 import { useLoad } from './useLoad'
-
-export type FilterChange = Partial<Omit<ProductFilters, 'page'>>
 
 const FIRST_PAGE_WITHOUT_FILTERS: ProductFilters = { page: 1 }
 
