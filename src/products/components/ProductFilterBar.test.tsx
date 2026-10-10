@@ -22,17 +22,34 @@ describe('ProductFilterBar', () => {
   it('labels each filter and describes the name field', () => {
     renderBar()
 
-    expect(screen.getByLabelText('Name')).toBeInTheDocument()
-    expect(screen.getByLabelText('Category')).toBeInTheDocument()
-    expect(screen.getByLabelText('Status')).toBeInTheDocument()
-    expect(screen.getByLabelText('Name')).toHaveAccessibleDescription('Partial match, case-insensitive')
+    expect(screen.getByLabelText('Nombre')).toBeInTheDocument()
+    expect(screen.getByLabelText('Categoría')).toBeInTheDocument()
+    expect(screen.getByLabelText('Estado')).toBeInTheDocument()
+    expect(screen.getByLabelText('Nombre')).toHaveAccessibleDescription('Coincidencia parcial, sin distinguir mayúsculas')
   })
 
-  it('sends the typed name when the search is submitted', async () => {
+  it('is a search landmark, and none of its filters is a required field', () => {
+    renderBar()
+
+    expect(screen.getByRole('search')).toBeInTheDocument()
+    for (const label of ['Nombre', 'Categoría', 'Estado']) expect(screen.getByLabelText(label)).not.toBeRequired()
+  })
+
+  it('sends the typed name when Buscar is used', async () => {
     const user = userEvent.setup()
     const { onChange } = renderBar()
 
-    await user.type(screen.getByLabelText('Name'), 'mouse{Enter}')
+    await user.type(screen.getByLabelText('Nombre'), 'mouse')
+    await user.click(screen.getByRole('button', { name: 'Buscar' }))
+
+    expect(onChange).toHaveBeenLastCalledWith({ name: 'mouse' })
+  })
+
+  it('sends the typed name when Enter is pressed', async () => {
+    const user = userEvent.setup()
+    const { onChange } = renderBar()
+
+    await user.type(screen.getByLabelText('Nombre'), 'mouse{Enter}')
 
     expect(onChange).toHaveBeenLastCalledWith({ name: 'mouse' })
   })
@@ -41,58 +58,66 @@ describe('ProductFilterBar', () => {
     const user = userEvent.setup()
     const { onChange } = renderBar()
 
-    await user.selectOptions(screen.getByLabelText('Category'), 'c-1')
+    await user.selectOptions(screen.getByLabelText('Categoría'), 'c-1')
 
     expect(onChange).toHaveBeenLastCalledWith({ categoryId: 'c-1' })
   })
 
-  it('offers every category, with All categories first', () => {
+  it('offers every category, with Todas las categorías first', () => {
     renderBar()
 
-    const options = screen.getByLabelText('Category').querySelectorAll('option')
-    expect([...options].map((option) => option.textContent)).toEqual(['All categories', 'Peripherals', 'Accessories'])
+    const options = screen.getByLabelText('Categoría').querySelectorAll('option')
+    expect([...options].map((option) => option.textContent)).toEqual(['Todas las categorías', 'Peripherals', 'Accessories'])
   })
 
-  it('sends Active and Inactive, and clears the status filter for All', async () => {
+  it('offers Todos, Activos and Inactivos for the status', () => {
+    renderBar()
+
+    const options = screen.getByLabelText('Estado').querySelectorAll('option')
+    expect([...options].map((option) => option.textContent)).toEqual(['Todos', 'Activos', 'Inactivos'])
+  })
+
+  it('sends Activos and Inactivos, and clears the status filter for Todos', async () => {
     const user = userEvent.setup()
     const { onChange } = renderBar()
 
-    await user.selectOptions(screen.getByLabelText('Status'), 'active')
+    await user.selectOptions(screen.getByLabelText('Estado'), 'active')
     expect(onChange).toHaveBeenLastCalledWith({ active: true })
 
-    await user.selectOptions(screen.getByLabelText('Status'), 'inactive')
+    await user.selectOptions(screen.getByLabelText('Estado'), 'inactive')
     expect(onChange).toHaveBeenLastCalledWith({ active: false })
 
-    await user.selectOptions(screen.getByLabelText('Status'), 'all')
+    await user.selectOptions(screen.getByLabelText('Estado'), 'all')
     expect(onChange).toHaveBeenLastCalledWith({ active: undefined })
   })
 
   it('shows the category list as loading and disables the category choice', () => {
     renderBar({ categories: { status: 'loading' } })
 
-    expect(screen.getByLabelText('Category')).toBeDisabled()
-    expect(screen.getByRole('option', { name: 'Loading categories…' })).toBeInTheDocument()
+    expect(screen.getByLabelText('Categoría')).toBeDisabled()
+    expect(screen.getByRole('option', { name: 'Cargando categorías…' })).toBeInTheDocument()
   })
 
   it('shows the categories as unavailable with a retry that repeats their request', async () => {
     const user = userEvent.setup()
     const { onRetryCategories } = renderBar({ categories: { status: 'error' } })
 
-    expect(screen.getByText('Categories could not be loaded.')).toBeInTheDocument()
-    await user.click(screen.getByRole('button', { name: 'Retry categories' }))
+    expect(screen.getByText('No se pudieron cargar las categorías.')).toBeInTheDocument()
+    expect(screen.getByRole('option', { name: 'Categorías no disponibles' })).toBeInTheDocument()
+    await user.click(screen.getByRole('button', { name: 'Reintentar categorías' }))
 
     expect(onRetryCategories).toHaveBeenCalledOnce()
   })
 
-  it('shows the status the filters hold, Active or Inactive', () => {
+  it('shows the status the filters hold, Activos or Inactivos', () => {
     renderBar({ filters: { page: 1, active: false } })
 
-    expect(screen.getByLabelText('Status')).toHaveValue('inactive')
+    expect(screen.getByLabelText('Estado')).toHaveValue('inactive')
   })
 
   it('keeps the name the person typed in the field', () => {
     renderBar({ filters: { page: 1, name: 'mouse' } })
 
-    expect(screen.getByLabelText('Name')).toHaveValue('mouse')
+    expect(screen.getByLabelText('Nombre')).toHaveValue('mouse')
   })
 })
