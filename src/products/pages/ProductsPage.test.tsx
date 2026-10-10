@@ -40,7 +40,7 @@ describe('ProductsPage', () => {
 
     render(<ProductsPage />)
 
-    expect(screen.getByRole('status')).toHaveTextContent('Loading products…')
+    expect(screen.getByRole('status')).toHaveTextContent('Cargando productos…')
   })
 
   it('shows every product with its category name, from the categories list', async () => {
