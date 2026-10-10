@@ -8,12 +8,13 @@ import type { RowActionHandlers } from '../components/RowActions'
 import { SummaryTiles } from '../components/SummaryTiles'
 import { categoriesCopy } from '../model/categoriesCopy'
 import type { CategoryResponse } from '../model/category'
+import { initialNameFilter } from '../model/initialFilters'
 import { listCopy } from '../model/listCopy'
 import { managementCopy } from '../model/managementCopy'
 import { openerKey, type RowAction } from '../model/openerKey'
 import { isPanelOpen, NO_PANEL, type Panel } from '../model/panel'
 import { toListView } from '../model/productList'
-import type { ProductResponse } from '../model/product'
+import type { ProductFilters, ProductResponse } from '../model/product'
 import { registrationCopy } from '../model/registrationCopy'
 import { toSummaryTiles } from '../model/summary'
 import styles from './ProductsPage.module.css'
@@ -29,7 +30,8 @@ import { useSummary } from './useSummary'
 // deactivations ask first in a dialog; only one of them is open at a time, so
 // while one is, the controls that open the others are unavailable.
 export function ProductsPage() {
-  const products = useProductList()
+  const [initialFilters] = useState<ProductFilters>(() => ({ page: 1, name: initialNameFilter(window.location.search) }))
+  const products = useProductList(initialFilters)
   const categories = useCategories()
   const summary = useSummary()
   const announcement = useAnnouncement()
