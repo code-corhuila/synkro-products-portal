@@ -4,22 +4,25 @@ import { ProductsTableHead } from './ProductsTableHead'
 import { Skeleton } from './Skeleton'
 
 const SKELETON_ROWS = 8
-const BADGE_COLUMNS = ['category', 'status']
 
-// The loading shape of the table: the same columns and headers, with a
-// placeholder in every cell. It is hidden from screen readers, which hear the
-// loading status instead, and it takes no focus.
-export function ProductsTableSkeleton() {
+interface ProductsTableSkeletonProps {
+  columns?: TableColumn[]
+}
+
+// The loading shape of a table: the same columns and headers, with a placeholder
+// in every cell. It is hidden from screen readers, which hear the loading status
+// instead, and it takes no focus.
+export function ProductsTableSkeleton({ columns = tableColumns }: ProductsTableSkeletonProps) {
   return (
     <div aria-hidden="true" className={styles.scroller}>
       <table className={styles.table}>
-        <ProductsTableHead />
+        <ProductsTableHead columns={columns} />
         <tbody>
           {Array.from({ length: SKELETON_ROWS }, (_, row) => (
             <tr key={row}>
-              {tableColumns.map((column) => (
+              {columns.map((column) => (
                 <td key={column.id} className={cellClass(column)}>
-                  <Skeleton shape={BADGE_COLUMNS.includes(column.id) ? 'badge' : 'text'} />
+                  <Skeleton shape={column.badge ? 'badge' : 'text'} />
                 </td>
               ))}
             </tr>
