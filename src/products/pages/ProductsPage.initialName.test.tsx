@@ -20,8 +20,12 @@ const firstListRequest = (service: CatalogueService) =>
   service.requests('GET', PRODUCTS_PATH).find(([, options]) => options?.query?.limit !== 1)
 
 describe('ProductsPage: the initial name filter from the URL', () => {
-  beforeEach(() => apiClient.request.mockReset())
-  afterEach(() => window.history.replaceState({}, '', '/'))
+  beforeEach(() => {
+    apiClient.request.mockReset()
+  })
+  afterEach(() => {
+    window.history.replaceState({}, "", "/")
+  })
 
   it('asks for the name in the URL from the first request, and the search box starts with it', async () => {
     const service = start('?name=Teclado')

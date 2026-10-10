@@ -8,9 +8,10 @@ const FIRST_PAGE_WITHOUT_FILTERS: ProductFilters = { page: 1 }
 const loadProducts = (filters: ProductFilters, signal: AbortSignal) => listProducts(filters, { signal })
 
 // The product list screen's state: the filters and page, and the answer for them.
+// It starts from the filters it is given (a link may ask for a name).
 // The filters stay when a request fails, so a retry asks the same question again.
-export function useProductList() {
-  const [filters, setFilters] = useState<ProductFilters>(FIRST_PAGE_WITHOUT_FILTERS)
+export function useProductList(initialFilters: ProductFilters = FIRST_PAGE_WITHOUT_FILTERS) {
+  const [filters, setFilters] = useState<ProductFilters>(initialFilters)
   const { state, retry } = useLoad(filters, loadProducts)
 
   const updateFilters = useCallback((change: FilterChange) => {
