@@ -19,6 +19,9 @@ export interface ProductFilters {
   page: number
 }
 
+// A change made by one filter control. Changing a filter always returns to the first page.
+export type FilterChange = Partial<Omit<ProductFilters, 'page'>>
+
 // One table row, already formatted for display.
 export interface ProductRow {
   productId: string
