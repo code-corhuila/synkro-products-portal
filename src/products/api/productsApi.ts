@@ -18,12 +18,32 @@ interface ListOptions {
   signal?: AbortSignal
 }
 
+// What `GET /products` accepts besides the screen's filters: stockAtMost
+// (products whose stock is at most this value) and a page size.
+interface ProductQuery extends ProductFilters {
+  stockAtMost?: number
+  limit?: number
+}
+
+export type ProductCountQuery = Pick<ProductQuery, 'active' | 'stockAtMost'>
+
 // Every call goes through the host's single client, which adds the gateway
 // address, credential, correlation id and timeout. The caller passes a signal
 // so a superseded request can be aborted.
 export function listProducts(filters: ProductFilters, options: ListOptions = {}): Promise<Page<ProductResponse>> {
+  return requestProducts(filters, options)
+}
+
+// How many products match, for a summary tile. Only `meta.total` is read, so it
+// asks for a single row.
+export async function countProducts(query: ProductCountQuery, options: ListOptions = {}): Promise<number> {
+  const page = await requestProducts({ ...query, page: 1, limit: 1 }, options)
+  return page.meta.total
+}
+
+function requestProducts(query: ProductQuery, options: ListOptions): Promise<Page<ProductResponse>> {
   return apiClient.request<Page<ProductResponse>>(PRODUCTS_PATH, {
-    query: productQuery(filters),
+    query: productQuery(query),
     signal: options.signal,
   })
 }
@@ -53,13 +73,14 @@ export async function listAllCategories(options: ListOptions = {}): Promise<Cate
 }
 
 // A value the host skips when undefined: an unset or blank filter is left out.
-function productQuery({ page, name, categoryId, active }: ProductFilters) {
+function productQuery({ page, limit = PRODUCTS_PAGE_SIZE, name, categoryId, active, stockAtMost }: ProductQuery) {
   return {
     page,
-    limit: PRODUCTS_PAGE_SIZE,
+    limit,
     name: textOrUndefined(name),
     categoryId: textOrUndefined(categoryId),
     active,
+    stockAtMost,
   }
 }
 
