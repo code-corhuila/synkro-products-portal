@@ -208,21 +208,22 @@ describe('ConfirmDialog', () => {
   describe('the page behind', () => {
     it('cannot be reached or read while the dialog is open', async () => {
       const user = userEvent.setup()
-      render(<Harness />)
+      const { container } = render(<Harness />)
 
       await user.click(screen.getByRole('button', { name: 'Abrir' }))
 
-      expect(screen.getByTestId('page')).toHaveAttribute('inert')
+      expect(container).toHaveAttribute('inert')
+      expect(screen.getByRole('dialog').closest('[inert]')).toBeNull()
     })
 
     it('is restored when the dialog closes', async () => {
       const user = userEvent.setup()
-      render(<Harness />)
+      const { container } = render(<Harness />)
       await user.click(screen.getByRole('button', { name: 'Abrir' }))
 
       await user.click(screen.getByRole('button', { name: 'Cancelar' }))
 
-      expect(screen.getByTestId('page')).not.toHaveAttribute('inert')
+      expect(container).not.toHaveAttribute('inert')
     })
 
     it('does not scroll while the dialog is open', () => {
