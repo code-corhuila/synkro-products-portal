@@ -1,12 +1,16 @@
 import { tableColumns, type TableColumn } from '../model/tableColumns'
 import styles from './ProductsTable.module.css'
 
+interface ProductsTableHeadProps {
+  columns?: TableColumn[]
+}
+
 // The header row, shared by the table and its skeleton so both have the same columns.
-export function ProductsTableHead() {
+export function ProductsTableHead({ columns = tableColumns }: ProductsTableHeadProps) {
   return (
     <thead>
       <tr>
-        {tableColumns.map((column) => (
+        {columns.map((column) => (
           <th key={column.id} scope="col" className={headerClass(column)}>
             {column.header}
           </th>

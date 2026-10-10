@@ -40,6 +40,7 @@ export const listCopy = {
     search: 'Buscar',
     category: 'Categoría',
     allCategories: 'Todas las categorías',
+    inactiveCategory: (name: string) => `${name} (inactiva)`,
     categoriesLoading: 'Cargando categorías…',
     categoriesUnavailable: 'Categorías no disponibles',
     categoriesFailed: 'No se pudieron cargar las categorías.',
