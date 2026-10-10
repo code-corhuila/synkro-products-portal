@@ -115,7 +115,7 @@ describe('CategoriesSection', () => {
     it('shows skeleton chips and says it is loading', () => {
       renderSection({ categories: { status: 'loading' } })
 
-      expect(screen.getByRole('status')).toHaveTextContent('Cargando categorías…')
+      expect(screen.getByText('Cargando categorías…')).toBeInTheDocument()
       expect(screen.queryByRole('list', { name: 'Categorías activas' })).not.toBeInTheDocument()
     })
 

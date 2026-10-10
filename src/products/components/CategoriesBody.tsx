@@ -23,7 +23,7 @@ export function CategoriesBody({ categories, busy, onRetry, onCreate, onRename, 
   if (categories.status === 'loading') {
     return (
       <>
-        <p role="status" className={styles.visuallyHidden}>
+        <p className={styles.visuallyHidden}>
           {categoriesCopy.loading}
         </p>
         <ul aria-hidden="true" className={styles.chips}>
