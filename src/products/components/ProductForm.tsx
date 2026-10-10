@@ -30,8 +30,8 @@ export interface ProductFormProps {
   isPending: boolean
   submit: (product: NewProduct) => Promise<SubmitOutcome<ProductResponse, ProductField>>
   onDone: (product: ProductResponse) => void
-  // The service says the product no longer exists: the page reloads its list.
-  onGone?: () => void
+  // The answer shows the page's list is out of date: it reloads it.
+  onOutdated?: () => void
   onCancel: () => void
 }
 
@@ -53,7 +53,7 @@ export function ProductForm({
   isPending,
   submit,
   onDone,
-  onGone,
+  onOutdated,
   onCancel,
 }: ProductFormProps) {
   const ids = useId()
@@ -92,7 +92,7 @@ export function ProductForm({
     if (outcome.status === 'ignored') return
 
     showErrors(outcome.failure.fieldErrors, outcome.failure.alert)
-    if (outcome.failure.gone) onGone?.()
+    if (outcome.failure.outdated) onOutdated?.()
   }
 
   return (
