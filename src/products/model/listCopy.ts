@@ -1,7 +1,14 @@
 // Everything the product list says to the user, in Spanish. Code, tests and
 // comments stay in English; only these strings are user-facing.
 export const listCopy = {
+  title: 'Productos',
+  catalogue: 'Catálogo',
   loading: 'Cargando productos…',
+
+  summary: 'Resumen del catálogo',
+  tileUnavailable: '—',
+  tileUnavailableLabel: 'Dato no disponible',
+  retryTile: (label: string) => `Reintentar: ${label}`,
 
   tiles: {
     activeProducts: 'Productos activos',
