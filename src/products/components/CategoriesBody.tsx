@@ -66,26 +66,28 @@ export function CategoriesBody({ categories, busy, onRetry, onCreate, onRename, 
       {active.map((category) => (
         <li key={category.categoryId} className={styles.chip}>
           <span className={styles.name}>{category.name}</span>
-          <Button
-            variant="ghost"
-            size="small"
-            disabled={busy}
-            data-opener={`category-rename:${category.categoryId}`}
-            aria-label={categoriesCopy.renameLabel(category.name)}
-            onClick={() => onRename(category)}
-          >
-            {categoriesCopy.rename}
-          </Button>
-          <Button
-            variant="danger"
-            size="small"
-            disabled={busy}
-            data-opener={`category-deactivate:${category.categoryId}`}
-            aria-label={categoriesCopy.deactivateLabel(category.name)}
-            onClick={() => onDeactivate(category)}
-          >
-            {categoriesCopy.deactivate}
-          </Button>
+          <span className={styles.controls}>
+            <Button
+              variant="ghost"
+              size="small"
+              disabled={busy}
+              data-opener={`category-rename:${category.categoryId}`}
+              aria-label={categoriesCopy.renameLabel(category.name)}
+              onClick={() => onRename(category)}
+            >
+              {categoriesCopy.rename}
+            </Button>
+            <Button
+              variant="danger"
+              size="small"
+              disabled={busy}
+              data-opener={`category-deactivate:${category.categoryId}`}
+              aria-label={categoriesCopy.deactivateLabel(category.name)}
+              onClick={() => onDeactivate(category)}
+            >
+              {categoriesCopy.deactivate}
+            </Button>
+          </span>
         </li>
       ))}
     </ul>
