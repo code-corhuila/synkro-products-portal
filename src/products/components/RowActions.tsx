@@ -1,4 +1,5 @@
 import { managementCopy } from '../model/managementCopy'
+import { openerKey } from '../model/openerKey'
 import type { ProductRow } from '../model/product'
 import { Button } from './Button'
 import styles from './ProductsTable.module.css'
@@ -11,10 +12,6 @@ export interface RowActionHandlers {
   onDeactivate: (productId: string) => void
   disabled: boolean
 }
-
-// The identity of the control, so the page can give the focus back to it when
-// the panel or dialog it opened closes.
-export const openerKey = (action: 'edit' | 'adjust' | 'deactivate', productId: string) => `${action}:${productId}`
 
 // The actions of one row: Editar and Ajustar stock are ghost buttons, Desactivar
 // is a danger button. Each one is named after the product, so a screen reader
