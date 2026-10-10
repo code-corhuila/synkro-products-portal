@@ -7,11 +7,13 @@ export type FilterChange = Partial<Omit<ProductFilters, 'page'>>
 
 const FIRST_PAGE_WITHOUT_FILTERS: ProductFilters = { page: 1 }
 
+const loadProducts = (filters: ProductFilters, signal: AbortSignal) => listProducts(filters, { signal })
+
 // The product list screen's state: the filters and page, and the answer for them.
 // The filters stay when a request fails, so a retry asks the same question again.
 export function useProductList() {
   const [filters, setFilters] = useState<ProductFilters>(FIRST_PAGE_WITHOUT_FILTERS)
-  const { state, retry } = useLoad(filters, (current, signal) => listProducts(current, { signal }))
+  const { state, retry } = useLoad(filters, loadProducts)
 
   const updateFilters = useCallback((change: FilterChange) => {
     setFilters((current) => ({ ...current, ...change, page: 1 }))
