@@ -8,7 +8,7 @@ export const PRODUCTS_PATH = '/api/v1/products'
 export const CATEGORIES_PATH = '/api/v1/products/categories'
 
 interface Rejection {
-  matches: (method: string, path: string) => boolean
+  matches: (method: string, path: string, options: RequestOptions) => boolean
   error: Error
 }
 
@@ -40,6 +40,11 @@ export class CatalogueService {
     })
   }
 
+  // Fails the next request the predicate accepts, whatever its path.
+  rejectNextWhere(matches: (method: string, path: string, options: RequestOptions) => boolean, status: number, error: string, message: string) {
+    this.rejections.push({ matches, error: hostError(status, { error, message }) })
+  }
+
   requests(method: string, path?: RegExp | string) {
     return apiClient.request.mock.calls.filter(([requestPath, options]) => {
       if ((options?.method ?? 'GET') !== method) return false
@@ -50,7 +55,7 @@ export class CatalogueService {
 
   private handle(path: string, options: RequestOptions): Promise<unknown> {
     const method = options.method ?? 'GET'
-    const index = this.rejections.findIndex((rejection) => rejection.matches(method, path))
+    const index = this.rejections.findIndex((rejection) => rejection.matches(method, path, options))
     if (index !== -1) return Promise.reject(this.rejections.splice(index, 1)[0].error)
 
     const body = (options.body ?? {}) as Record<string, unknown>
