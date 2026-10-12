@@ -361,3 +361,13 @@ A federated remote's entry only exists in a build, so there is no dev server.
 | `npm test` | Vitest; add `-- --coverage` for the report (floor: 70% statements) |
 | `npm run build` | type-check and build the remote |
 | `npm run check:compiled` | fails if `dist/` has a gateway address, token handling or a direct HTTP client (run it after the build) |
+
+## Root composition delivery
+
+The deployed Products remote is served through the host at
+`http://localhost:5173/remotes/products/assets/remoteEntry.js`. Its container
+publishes no host port and joins `platform`. Its Vite base is `/remotes/products/`;
+the host proxies that prefix to the internal portal. Local Vite preview remains
+a separate development command. The host build accepts `VITE_PRODUCTS_PORTAL_ENTRY`
+for this route. Three other portal packages remain external dependencies.
+Run `python3 tests/test_root_deploy.py` for deployment configuration checks.
