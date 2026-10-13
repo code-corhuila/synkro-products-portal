@@ -40,3 +40,9 @@
 .secondary:hover:not(:disabled) {
   box-shadow: inset 0 0 0 1px var(--color-secondary-action);
 }
+
+.small {
+  min-height: var(--space-8);
+  padding: var(--space-1) var(--space-3);
+  font-size: var(--font-size-sm);
+}
