@@ -85,6 +85,28 @@ describe('useProductList', () => {
     await waitFor(() => expect(lastRequestUrl()).toBe('/api/v1/products?page=2&limit=20&name=mouse'))
   })
 
+  it('reloading starts from the first page and keeps the filters', async () => {
+    apiClient.request.mockResolvedValue(productsPage([]))
+    const { result } = renderHook(() => useProductList())
+    act(() => result.current.updateFilters({ name: 'mouse' }))
+    act(() => result.current.goToPage(3))
+    await waitFor(() => expect(lastRequestUrl()).toBe('/api/v1/products?page=3&limit=20&name=mouse'))
+
+    act(() => result.current.reloadFromFirstPage())
+
+    await waitFor(() => expect(lastRequestUrl()).toBe('/api/v1/products?page=1&limit=20&name=mouse'))
+  })
+
+  it('reloading from the first page asks again even when it is already there', async () => {
+    apiClient.request.mockResolvedValue(productsPage([mouse]))
+    const { result } = renderHook(() => useProductList())
+    await waitFor(() => expect(result.current.state.status).toBe('ready'))
+
+    act(() => result.current.reloadFromFirstPage())
+
+    await waitFor(() => expect(apiClient.request).toHaveBeenCalledTimes(2))
+  })
+
   it('a newer request wins: the table shows the fast answer and the slow late answer is ignored', async () => {
     const slow = deferred<unknown>()
     const fast = deferred<unknown>()

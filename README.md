@@ -80,8 +80,46 @@ pages 20 products at a time. Access by role (ADMIN, INVENTORY) belongs to the ho
 - **Money:** `priceCents` is an integer count of minor units of COP (1/100). `model/money.ts`
   formats it with integer arithmetic only, as `COP 1.234,56` (Colombian separators).
 
-Out of scope here: registering, editing or deactivating products, stock adjustments, the stock lookup
+Out of scope here: editing or deactivating products, stock adjustments, the stock lookup
 and the stock alerts.
+
+## Registering a product (`/products`)
+
+"Nuevo producto" opens the registration form as a panel inside the list page (registration has no
+route of its own, `navigation-map.md`). It posts `{ name, priceCents, categoryId }` to
+`POST /api/v1/products` through `shell/apiClient`; stock is never sent, a new product starts at 0.
+All user-facing text is in Spanish; the list is still in English until its translation lands.
+
+- **Price:** `model/price.ts` reads the typed text with string splitting and `BigInt`, never a float.
+  Accepted: digits with at most one `.` or `,` followed by one or two digits (`0.07` is 7, `12,5` is
+  1250, `1234` is 123400). Rejected, with a message on the field and nothing sent: empty, zero, negative,
+  letters, more than two decimals (so `1.234` is rejected as ambiguous between a thousand and a fraction),
+  and anything above `Number.MAX_SAFE_INTEGER` minor units.
+- **Idempotency:** one `Idempotency-Key` (`crypto.randomUUID()`) per intent (`pages/useRegistrationIntent.ts`).
+  Sending the same data (trimmed name, price in minor units, category) again after a failure reuses the key;
+  changed data, or a success, starts a new key. Only the last intent is remembered, and the key lives as long
+  as the open form. A `201` and a replayed `200` are both success.
+- **Errors:** the host's error is recognized by its shape (`status` and `body`), because the portal cannot
+  import the host's class. `400` with `details` shows each message next to its field (`priceCents` is the
+  price field); `404` is the category field; `422`, status `0` and anything else are a form alert that
+  keeps the data and allows a retry. Focus goes to the first invalid field, or to the alert.
+- **Submitting:** the submit button is disabled while the request is pending and a ref guards the double
+  click, so a double click sends one request. Cancel is disabled meanwhile, so an answer is never left without a form.
+  On success the form closes, focus returns to "Nuevo producto", the list reloads from its first page with
+  the filters kept (the newest request still wins) and a polite live region says "Producto registrado" for 4 seconds.
+- **Categories:** the form reuses the list's categories and offers only the active ones. If they failed to
+  load, the category field says so and offers a retry.
+
+### Styling
+
+Styles are CSS Modules (`*.module.css`) next to the component. They read the host's design tokens by name
+(`var(--color-primary-500)`) and never carry a colour, spacing or type literal; `src/styles.test.ts` enforces
+it. CSS Modules scope each class name, and a remote's stylesheet lands in the host's document, where a plain
+global class could collide with the host's or another portal's. The host publishes the tokens and follows the
+operating system's light or dark theme, so no component branches on the theme except the input background
+the design system asks to sit on the page colour in dark. The host's `Button` is not shared: `components/Button.tsx` is
+this portal's own. `build.cssCodeSplit: false` keeps one stylesheet that the remote entry loads, and the
+build test still fails on any unresolved `__v__css__` placeholder.
 
 ## Running locally
 
