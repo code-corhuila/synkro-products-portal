@@ -6,7 +6,7 @@
 
 .table {
   width: 100%;
-  min-width: 40rem;
+  min-width: 52rem;
   border-collapse: collapse;
   color: var(--color-text-primary);
   font-family: var(--font-family-sans);
@@ -46,6 +46,21 @@
   text-align: right;
 }
 
+/* The actions column is right-aligned like the numbers, but it holds buttons:
+   they wrap together instead of forcing a width. */
+.table th.endHeader,
+.table td.actionsCell {
+  text-align: right;
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-end;
+  gap: var(--space-2);
+}
+
 .stock {
   display: inline-flex;
   align-items: center;
@@ -53,6 +68,7 @@
 }
 
 /* A placeholder in a numeric column hugs the right edge, where the number will be. */
-.table td.numeric > [aria-hidden='true'] {
+.table td.numeric > [aria-hidden='true'],
+.table td.actionsCell > [aria-hidden='true'] {
   margin-left: auto;
 }

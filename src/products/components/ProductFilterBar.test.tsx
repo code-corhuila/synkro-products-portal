@@ -63,11 +63,15 @@ describe('ProductFilterBar', () => {
     expect(onChange).toHaveBeenLastCalledWith({ categoryId: 'c-1' })
   })
 
-  it('offers every category, with Todas las categorías first', () => {
+  it('offers every category, with Todas las categorías first and the inactive ones marked', () => {
     renderBar()
 
     const options = screen.getByLabelText('Categoría').querySelectorAll('option')
-    expect([...options].map((option) => option.textContent)).toEqual(['Todas las categorías', 'Peripherals', 'Accessories'])
+    expect([...options].map((option) => option.textContent)).toEqual([
+      'Todas las categorías',
+      'Peripherals',
+      'Accessories (inactiva)',
+    ])
   })
 
   it('offers Todos, Activos and Inactivos for the status', () => {

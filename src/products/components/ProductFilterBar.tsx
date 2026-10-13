@@ -12,13 +12,23 @@ interface ProductFilterBarProps {
   categories: Loadable<CategoryResponse[]>
   onChange: (change: FilterChange) => void
   onRetryCategories: () => void
+  // The stock lookup shows active products only: no status filter, and no inactive category to pick.
+  showStatus?: boolean
+  activeCategoriesOnly?: boolean
 }
 
 type StatusChoice = 'all' | 'active' | 'inactive'
 
 // Name is applied on submit (a search), the other two filters apply as soon as they change.
 // None of them is a required field.
-export function ProductFilterBar({ filters, categories, onChange, onRetryCategories }: ProductFilterBarProps) {
+export function ProductFilterBar({
+  filters,
+  categories,
+  onChange,
+  onRetryCategories,
+  showStatus = true,
+  activeCategoriesOnly = false,
+}: ProductFilterBarProps) {
   const [nameDraft, setNameDraft] = useState(filters.name ?? '')
 
   function submitName(event: FormEvent<HTMLFormElement>) {
@@ -46,10 +56,12 @@ export function ProductFilterBar({ filters, categories, onChange, onRetryCategor
       <CategoryFilter
         categoryId={filters.categoryId}
         categories={categories}
+        activeOnly={activeCategoriesOnly}
         onChange={onChange}
         onRetry={onRetryCategories}
       />
 
+      {showStatus && (
       <Field id="product-status" label={listCopy.filters.status} required={false}>
         {(control) => (
           <select
@@ -63,6 +75,7 @@ export function ProductFilterBar({ filters, categories, onChange, onRetryCategor
           </select>
         )}
       </Field>
+      )}
     </form>
   )
 }
@@ -70,11 +83,12 @@ export function ProductFilterBar({ filters, categories, onChange, onRetryCategor
 interface CategoryFilterProps {
   categoryId: string | undefined
   categories: Loadable<CategoryResponse[]>
+  activeOnly: boolean
   onChange: (change: FilterChange) => void
   onRetry: () => void
 }
 
-function CategoryFilter({ categoryId, categories, onChange, onRetry }: CategoryFilterProps) {
+function CategoryFilter({ categoryId, categories, activeOnly, onChange, onRetry }: CategoryFilterProps) {
   const failed = categories.status === 'error'
 
   return (
@@ -105,11 +119,13 @@ function CategoryFilter({ categoryId, categories, onChange, onRetry }: CategoryF
           {categories.status === 'ready' && (
             <>
               <option value="">{listCopy.filters.allCategories}</option>
-              {categories.value.map((category) => (
-                <option key={category.categoryId} value={category.categoryId}>
-                  {category.name}
-                </option>
-              ))}
+              {categories.value
+                .filter((category) => !activeOnly || category.active)
+                .map((category) => (
+                  <option key={category.categoryId} value={category.categoryId}>
+                    {category.active ? category.name : listCopy.filters.inactiveCategory(category.name)}
+                  </option>
+                ))}
             </>
           )}
         </select>
