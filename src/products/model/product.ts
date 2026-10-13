@@ -34,13 +34,17 @@ export interface ProductRow {
   active: boolean
 }
 
-export function toProductRow(product: ProductResponse, categoryLabel: (categoryId: string) => string): ProductRow {
+export function toProductRow(
+  product: ProductResponse,
+  categoryLabel: (categoryId: string) => string,
+  hasOpenAlert = false,
+): ProductRow {
   return {
     productId: product.productId,
     name: product.name,
     price: formatMinorUnits(product.priceCents),
     stock: product.stock,
-    stockState: stockStateOf(product.stock),
+    stockState: stockStateOf(product.stock, hasOpenAlert),
     category: categoryLabel(product.categoryId),
     active: product.active,
   }

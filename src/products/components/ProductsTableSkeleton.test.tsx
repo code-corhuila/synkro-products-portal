@@ -7,7 +7,7 @@ describe('ProductsTableSkeleton', () => {
     const { container } = render(<ProductsTableSkeleton />)
 
     const headers = [...container.querySelectorAll('thead th')].map((header) => header.textContent)
-    expect(headers).toEqual(['Producto', 'Categoría', 'Precio', 'Stock', 'Estado'])
+    expect(headers).toEqual(['Producto', 'Categoría', 'Precio', 'Stock', 'Estado', 'Acciones'])
     expect(headers).toHaveLength(tableColumns.length)
   })
 

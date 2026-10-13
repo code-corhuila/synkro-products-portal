@@ -23,9 +23,11 @@ export const listCopy = {
     price: 'Precio',
     stock: 'Stock',
     status: 'Estado',
+    actions: 'Acciones',
   },
   stock: {
     'in-stock': 'En stock',
+    'low-stock': 'Stock bajo',
     'out-of-stock': 'Agotado',
   },
   status: {
@@ -38,6 +40,7 @@ export const listCopy = {
     search: 'Buscar',
     category: 'Categoría',
     allCategories: 'Todas las categorías',
+    inactiveCategory: (name: string) => `${name} (inactiva)`,
     categoriesLoading: 'Cargando categorías…',
     categoriesUnavailable: 'Categorías no disponibles',
     categoriesFailed: 'No se pudieron cargar las categorías.',
@@ -54,6 +57,7 @@ export const listCopy = {
   },
 
   failed: 'No se pudieron cargar los productos.',
+  lowStockCheckFailed: 'No se pudo comprobar el stock bajo. La lista sigue disponible.',
   retry: 'Reintentar',
   emptyCatalogue: 'Aún no hay productos registrados',
   noMatch: 'Ningún producto coincide con estos filtros',

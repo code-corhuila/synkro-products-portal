@@ -33,6 +33,8 @@ const answer = <T,>(value: T | 'fail') => (value === 'fail' ? Promise.reject(new
 const totalPage = (total: number) => ({ data: [], meta: { page: 1, limit: 1, total, totalPages: total } })
 
 apiClient.request.mockImplementation((path: string, options) => {
+  // No product is low on stock here: the open alerts are an empty list.
+  if (path === '/api/v1/stock-alerts') return Promise.resolve({ data: [], meta: { page: 1, limit: 100, total: 0, totalPages: 0 } })
   if (path === CATEGORIES_PATH) {
     return answer(service.categories === 'fail' ? 'fail' : categoriesPage(service.categories))
   }
@@ -172,7 +174,7 @@ describe('ProductsPage: the design', () => {
     expect(within(screen.getByRole('region', { name: 'Catálogo' })).queryByRole('button', { name: 'Nuevo producto' })).toBeNull()
   })
 
-  it('has a keyboard order of header, tile retry, filters, table region and pagination', async () => {
+  it('has a keyboard order of header, tile retry, filters, table region, its row actions and pagination', async () => {
     const user = userEvent.setup()
     serve({ outOfStock: 'fail', products: { ...productsPage([mouse]), meta: { page: 1, limit: 20, total: 41, totalPages: 3 } } })
     render(<ProductsPage />)
@@ -187,6 +189,9 @@ describe('ProductsPage: the design', () => {
       screen.getByLabelText('Categoría'),
       screen.getByLabelText('Estado'),
       screen.getByRole('region', { name: 'Tabla de productos' }),
+      screen.getByRole('button', { name: 'Editar Wireless mouse' }),
+      screen.getByRole('button', { name: 'Ajustar stock Wireless mouse' }),
+      screen.getByRole('button', { name: 'Desactivar Wireless mouse' }),
       screen.getByRole('button', { name: 'Siguiente' }),
     ]
     for (const element of order) {
