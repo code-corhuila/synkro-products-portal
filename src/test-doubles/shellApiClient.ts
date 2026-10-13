@@ -40,5 +40,15 @@ export function lastRequestUrl(): string {
 }
 
 function cancelledError(): Error {
-  return Object.assign(new Error('CANCELLED'), { status: 0, body: { error: 'CANCELLED' } })
+  return hostError(0, { error: 'CANCELLED', message: 'Request cancelled' })
+}
+
+// The error the host's client rejects with: a status (0 when no response came
+// back) and the error envelope. The portal recognizes it by this shape, not by
+// its class, because it cannot import the host's.
+export function hostError(
+  status: number,
+  body: { error: string; message: string; details?: { field: string; message: string }[] },
+): Error {
+  return Object.assign(new Error(body.message), { status, body: { traceId: 'trace-1', ...body } })
 }
