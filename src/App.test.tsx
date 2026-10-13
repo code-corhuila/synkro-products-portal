@@ -14,7 +14,7 @@ describe('App (the module the host mounts)', () => {
 
     render(<App />)
 
-    expect(screen.getByRole('heading', { name: 'Products' })).toBeInTheDocument()
+    expect(screen.getByRole('heading', { name: 'Productos' })).toBeInTheDocument()
   })
 
   it('renders nothing for a route it does not serve', () => {

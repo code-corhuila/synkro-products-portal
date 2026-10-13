@@ -7,6 +7,7 @@ const mouseRow: ProductRow = {
   name: 'Wireless mouse',
   price: 'COP 1.234,56',
   stock: 7,
+  stockState: 'in-stock',
   category: 'Peripherals',
   active: true,
 }
@@ -16,30 +17,69 @@ const keyboardRow: ProductRow = {
   name: 'Mechanical keyboard',
   price: 'COP 0,00',
   stock: 0,
-  category: 'Unknown category',
+  stockState: 'out-of-stock',
+  category: 'Categoría desconocida',
   active: false,
 }
 
+const cellsOf = (name: RegExp) => within(screen.getByRole('row', { name })).getAllByRole('cell')
+
 describe('ProductsTable', () => {
-  it('has a column for each field of the list', () => {
+  it('has the five columns of the wireframe, in order, and no actions column', () => {
     render(<ProductsTable rows={[mouseRow]} />)
 
     const headers = screen.getAllByRole('columnheader').map((header) => header.textContent)
-    expect(headers).toEqual(['Name', 'Price', 'Stock', 'Category', 'Status'])
+    expect(headers).toEqual(['Producto', 'Categoría', 'Precio', 'Stock', 'Estado'])
   })
 
-  it('shows every column of each product', () => {
+  it('sits in a keyboard-reachable, labelled region that scrolls on its own', () => {
     render(<ProductsTable rows={[mouseRow]} />)
 
-    const row = screen.getByRole('row', { name: /Wireless mouse/ })
-    const cells = within(row).getAllByRole('cell').map((cell) => cell.textContent)
-    expect(cells).toEqual(['Wireless mouse', 'COP 1.234,56', '7', 'Peripherals', 'Active'])
+    const region = screen.getByRole('region', { name: 'Tabla de productos' })
+    expect(region).toHaveAttribute('tabindex', '0')
+    expect(within(region).getByRole('table')).toBeInTheDocument()
   })
 
-  it('shows an inactive product as Inactive', () => {
-    render(<ProductsTable rows={[keyboardRow]} />)
+  it('shows the name and the price of each product', () => {
+    render(<ProductsTable rows={[mouseRow]} />)
 
-    expect(screen.getByRole('cell', { name: 'Inactive' })).toBeInTheDocument()
+    const cells = cellsOf(/Wireless mouse/)
+    expect(cells[0]).toHaveTextContent('Wireless mouse')
+    expect(cells[2]).toHaveTextContent('COP 1.234,56')
+  })
+
+  it('shows the category as a badge', () => {
+    render(<ProductsTable rows={[mouseRow]} />)
+
+    expect(within(cellsOf(/Wireless mouse/)[1]).getByText('Peripherals')).toHaveAttribute('data-tone', 'neutral')
+  })
+
+  it('shows the stock number next to a badge that states the state in words', () => {
+    render(<ProductsTable rows={[mouseRow, keyboardRow]} />)
+
+    const inStock = cellsOf(/Wireless mouse/)[3]
+    expect(within(inStock).getByText('7')).toBeInTheDocument()
+    expect(within(inStock).getByText('En stock')).toHaveAttribute('data-tone', 'success')
+
+    const soldOut = cellsOf(/Mechanical keyboard/)[3]
+    expect(within(soldOut).getByText('0')).toBeInTheDocument()
+    expect(within(soldOut).getByText('Agotado')).toHaveAttribute('data-tone', 'error')
+  })
+
+  it('shows Activo and Inactivo as badges', () => {
+    render(<ProductsTable rows={[mouseRow, keyboardRow]} />)
+
+    expect(within(cellsOf(/Wireless mouse/)[4]).getByText('Activo')).toHaveAttribute('data-tone', 'success')
+    expect(within(cellsOf(/Mechanical keyboard/)[4]).getByText('Inactivo')).toHaveAttribute('data-tone', 'neutral')
+  })
+
+  it('marks Precio and Stock as numeric, and only those', () => {
+    render(<ProductsTable rows={[mouseRow]} />)
+
+    const cells = cellsOf(/Wireless mouse/)
+    expect(cells.map((cell) => /numeric/.test(cell.className))).toEqual([false, false, true, true, false])
+    const headers = screen.getAllByRole('columnheader')
+    expect(headers.map((header) => /numeric/.test(header.className))).toEqual([false, false, true, true, false])
   })
 
   it('keeps the rows in the order received', () => {

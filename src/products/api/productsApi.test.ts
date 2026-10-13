@@ -6,7 +6,7 @@ import {
   peripherals,
   productsPage,
 } from '../../test-doubles/productsFixtures'
-import { listAllCategories, listCategories, listProducts } from './productsApi'
+import { countProducts, listAllCategories, listCategories, listProducts } from './productsApi'
 
 const emptyMeta = { page: 1, limit: 20, total: 0, totalPages: 0 }
 
@@ -95,6 +95,39 @@ describe('productsApi', () => {
       await listProducts({ page: 1 })
 
       expect(fetchSpy).not.toHaveBeenCalled()
+    })
+  })
+
+  describe('countProducts', () => {
+    it('asks for a single row, because only the total is needed', async () => {
+      apiClient.request.mockResolvedValue({ data: [], meta: { ...emptyMeta, limit: 1, total: 12 } })
+
+      await countProducts({ active: true })
+
+      expect(lastRequestUrl()).toBe('/api/v1/products?page=1&limit=1&active=true')
+    })
+
+    it('sends stockAtMost, including zero', async () => {
+      apiClient.request.mockResolvedValue({ data: [], meta: { ...emptyMeta, limit: 1, total: 2 } })
+
+      await countProducts({ active: true, stockAtMost: 0 })
+
+      expect(lastRequestUrl()).toBe('/api/v1/products?page=1&limit=1&active=true&stockAtMost=0')
+    })
+
+    it('resolves with meta.total', async () => {
+      apiClient.request.mockResolvedValue({ data: [mouse], meta: { page: 1, limit: 1, total: 37, totalPages: 37 } })
+
+      await expect(countProducts({ active: true })).resolves.toBe(37)
+    })
+
+    it('passes the abort signal to the host', async () => {
+      apiClient.request.mockResolvedValue({ data: [], meta: emptyMeta })
+      const controller = new AbortController()
+
+      await countProducts({ active: true }, { signal: controller.signal })
+
+      expect(apiClient.request.mock.lastCall?.[1]?.signal).toBe(controller.signal)
     })
   })
 
