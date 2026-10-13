@@ -1,6 +1,7 @@
-import { ProductsPage } from './products/pages/ProductsPage'
+import { resolveScreen } from './routes'
 
-// The module the host mounts as `productsPortal/App`.
+// The module the host mounts as `productsPortal/App`. It renders the screen for
+// the location the host routed to, and nothing for a route the portal does not own.
 export default function App() {
-  return <ProductsPage />
+  return resolveScreen(window.location.pathname)
 }

@@ -41,8 +41,8 @@ A React 19 + Vite **remote** loaded by the `synkro-front` host through
 The host owns the single HTTP client and the session; this portal only consumes them
 as federated modules (typed in `src/shell.d.ts`):
 
-- `shell/apiClient` — `apiClient.request(path, { method, body, headers })`
-- `shell/session` — `session.user()`
+- `shell/apiClient` — `apiClient.request(path, { method, body, headers, query, idempotencyKey, signal })`
+- `shell/session` — `session.user()` (declared in `src/shell.d.ts`; no screen reads it yet)
 
 The portal requests relative paths (`/api/v1/...`). It never calls `fetch`/`axios`
 and never stores a token. The lint config rejects `fetch`, `XMLHttpRequest`, `axios`,
@@ -52,16 +52,36 @@ and never stores a token. The lint config rejects `fetch`, `XMLHttpRequest`, `ax
 
 ```
 src/
-├── App.tsx            # module exposed to the host; re-exports the page
+├── App.tsx            # module exposed to the host; renders the screen for the current location
+├── routes.tsx         # path → screen; the only place that knows the portal's routes
 ├── federation.config.ts
 ├── shell.d.ts         # types of the modules the host exposes
 ├── products/
 │   ├── api/           # typed calls through shell/apiClient
-│   ├── components/
-│   ├── model/
-│   └── pages/
-└── test-doubles/      # fakes for shell/apiClient and shell/session
+│   ├── components/    # presentation only
+│   ├── model/         # types, money formatting, mapping to view rows
+│   └── pages/         # the screen, and the hooks that hold its state
+└── test-doubles/      # fakes for shell/apiClient and shell/session, and shared fixtures
 ```
+
+## Products list (`/products`)
+
+Filters the catalogue by name (partial, submitted with **Search**), category and status, and
+pages 20 products at a time. Access by role (ADMIN, INVENTORY) belongs to the host.
+
+- **Four states:** loading, error with a retry that repeats the same request (the filters stay),
+  empty, and data.
+- **Categories:** `ProductResponse` carries only `categoryId`. The categories list loads once when the
+  screen opens and names each product's category. It is a separate request, so the table keeps its
+  rows when categories fail; the category column then shows `Loading…` or `Unavailable`, and
+  `Unknown category` for an id the list does not contain.
+- **Newest request wins:** a new request aborts the one in flight, and an answer that arrives after
+  it was superseded is ignored. Leaving the screen aborts the request too (`pages/useLoad.ts`).
+- **Money:** `priceCents` is an integer count of minor units of COP (1/100). `model/money.ts`
+  formats it with integer arithmetic only, as `COP 1.234,56` (Colombian separators).
+
+Out of scope here: registering, editing or deactivating products, stock adjustments, the stock lookup
+and the stock alerts.
 
 ## Running locally
 
