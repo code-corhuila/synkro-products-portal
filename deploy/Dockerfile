@@ -8,9 +8,12 @@ RUN npm ci
 
 COPY . .
 
-# Where the host (synkro-front) serves the federation entry that exposes
-# shell/apiClient and shell/session. It is the only build input: the portal knows
-# the host's entry and nothing else about where it runs.
+# VITE_BASE_PATH is the prefix under which the host proxies this portal's assets.
+# VITE_SHELL_ENTRY_URL is where the host (synkro-front) serves the federation entry that
+# exposes shell/apiClient and shell/session. They are the only build inputs: the portal
+# knows its own prefix, the host's entry and nothing else about where it runs.
+ARG VITE_BASE_PATH=/remotes/products/
+ENV VITE_BASE_PATH=$VITE_BASE_PATH
 ARG VITE_SHELL_ENTRY_URL=http://localhost:5173/assets/remoteEntry.js
 ENV VITE_SHELL_ENTRY_URL=$VITE_SHELL_ENTRY_URL
 
