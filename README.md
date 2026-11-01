@@ -33,7 +33,8 @@ A React 19 + Vite **remote** loaded by the `synkro-front` host through
 |---|---|
 | Remote name | `productsPortal` |
 | Exposed module | `./App` (default export: a React component without props) |
-| Entry file | `http://localhost:5175/assets/remoteEntry.js` |
+| Entry file, delivered with the platform | `http://localhost:5173/remotes/products/assets/remoteEntry.js` (through the host) |
+| Entry file, `npm run preview` only | `http://localhost:5175/assets/remoteEntry.js` |
 | Host routes | `/products`, `/stock`, `/stock-alerts` |
 
 ### Screens
@@ -269,14 +270,21 @@ dispatches a `popstate` event. `components/PortalLink.tsx` is a real `<a href>`:
 
 `deploy/` holds the image of this portal alone; the composition of the whole system lives in `synkro-infra`.
 
+The delivered container publishes **no host port**: it listens on 80 inside the external `platform` network and the host
+(`synkro-front`) proxies `/remotes/products/` to it. Port 5175 belongs only to `npm run preview`. The `platform` network must
+exist before the portal starts (the root creates it; alone, `docker network create platform`), and the host must be reachable
+for anything to mount the remote.
+
 ```bash
 cp .env.example .env   # then uncomment what you change; .env is never committed
-docker compose --env-file .env -f deploy/compose.yml up --build   # http://localhost:5175
+docker compose --env-file .env -f deploy/compose.yml up --build   # no published port: reached through the host
 ```
 
 - **`deploy/Dockerfile`**: multi-stage. Node 22 alpine runs `npm ci`, builds, and runs `npm run check:compiled` (the build fails if the
   compiled portal has a gateway address or token handling); `nginx:1.27-alpine` serves `dist/`. Build argument `VITE_SHELL_ENTRY_URL`
   (default `http://localhost:5173/assets/remoteEntry.js`) is the host's federation entry, the only thing the portal knows about where it runs.
+  Build argument `VITE_BASE_PATH` (default and compose value `/remotes/products/`) is the Vite `base`, so the assets of the entry resolve
+  under the prefix the host proxies; without it the base is `/`, as in `npm run preview`.
 - **`deploy/nginx.conf.template`**, rendered by the image's template mechanism with one variable, `HOST_ORIGIN` (default
   `http://localhost:5173`; `NGINX_ENVSUBST_FILTER=^HOST_ORIGIN$` leaves nginx's own `$variables` alone):
   `/assets/remoteEntry.js` is `Cache-Control: no-store` (it decides which version of the portal the browser loads); the other
@@ -361,3 +369,14 @@ A federated remote's entry only exists in a build, so there is no dev server.
 | `npm test` | Vitest; add `-- --coverage` for the report (floor: 70% statements) |
 | `npm run build` | type-check and build the remote |
 | `npm run check:compiled` | fails if `dist/` has a gateway address, token handling or a direct HTTP client (run it after the build) |
+
+## Root composition delivery
+
+The deployed Products remote is served through the host at
+`http://localhost:5173/remotes/products/assets/remoteEntry.js`. Its container
+publishes no host port and joins `platform`. Its Vite base is `/remotes/products/`;
+the host proxies that prefix to the internal portal, stripping it. Local Vite preview remains
+a separate development command. The host build accepts `VITE_PRODUCTS_PORTAL_ENTRY`
+for this route. The Auth, Customers and Sales portals are delivered by their own repositories.
+`python tests/test_root_deploy.py` (`python3` where that is the executable) checks the deployment files only: it starts no container and
+opens no browser.

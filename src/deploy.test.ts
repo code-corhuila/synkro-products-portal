@@ -104,10 +104,11 @@ describe('the nginx template', () => {
 })
 
 describe('the compose file and the environment', () => {
-  it('runs this portal alone on 5175, with its values from an uncommitted .env', () => {
+  it('delivers this portal internally through the host', () => {
     const compose = read('deploy/compose.yml')
 
-    expect(compose).toMatch(/- "5175:80"/)
+    expect(compose).not.toMatch(/ports:/)
+    expect(compose).toMatch(/networks: \[platform\]/)
     expect(compose).toMatch(/dockerfile: deploy\/Dockerfile/)
     expect(compose).toMatch(/HOST_ORIGIN: \$\{HOST_ORIGIN:-http:\/\/localhost:5173\}/)
     expect(compose).toMatch(/VITE_SHELL_ENTRY_URL: \$\{VITE_SHELL_ENTRY_URL:-http:\/\/localhost:5173\/assets\/remoteEntry\.js\}/)
