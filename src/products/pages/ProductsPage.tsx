@@ -4,6 +4,7 @@ import { CategoriesSection } from '../components/CategoriesSection'
 import { ProductFilterBar } from '../components/ProductFilterBar'
 import { LowStockNotice } from '../components/LowStockNotice'
 import { ProductListBody } from '../components/ProductListBody'
+import { CatalogueExport } from '../components/CatalogueExport'
 import { ProductPanel } from '../components/ProductPanel'
 import type { RowActionHandlers } from '../components/RowActions'
 import { SummaryTiles } from '../components/SummaryTiles'
@@ -136,6 +137,8 @@ export function ProductsPage() {
           onChange={products.updateFilters}
           onRetryCategories={categories.retry}
         />
+        {categories.state.status === 'ready' && <CatalogueExport filters={products.filters}
+          categories={categories.state.value} disabled={isBusy} />}
         {openAlerts.status === 'error' && <LowStockNotice onRetry={openAlerts.reload} />}
         <ProductListBody
           view={view}
