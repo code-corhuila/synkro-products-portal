@@ -84,3 +84,13 @@ describe('numeric cells', () => {
     expect(rule).toMatch(/font-variant-numeric\s*:\s*tabular-nums/)
   })
 })
+
+// The dark theme is the person's choice in the host (<html data-theme>), which
+// may contradict the device: a portal rule keyed to prefers-color-scheme would
+// ignore it.
+it('keys its dark rules to the host theme, not to prefers-color-scheme', () => {
+  const css = stylesheets(SRC).map((path) => readFileSync(path, 'utf8')).join('\n')
+
+  expect(css).not.toContain('prefers-color-scheme')
+  expect(css).toContain(":root[data-theme='dark']")
+})
