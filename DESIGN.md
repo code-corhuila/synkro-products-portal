@@ -105,3 +105,15 @@ order, filtered pagination, limits, permissions, the stock option and reading th
 workbook with an independent library. Lint, TypeScript/Vite and the compiled Host boundary check
 passed. The checks use fixtures. Browser acceptance against the deployed stack remains a release
 check.
+
+## Host theme compatibility — HU-FE-11
+
+Explicit data-theme on the Host controls portal dark styling. A dark media-query fallback is
+scoped to :root:not([data-theme]) for the transition from the older Host. The fallback cannot
+override an explicit light choice.
+
+Candidate `3cd7ed1` passed 1,023 tests on Node 22.23.3. Its 22 compiled-build checks passed after
+building, including the case initially skipped while dist was absent. Lint, build and the
+compiled boundary check passed. Private root `2f3dcf72d1142e3e872ae5d76c7992eb077ed42d` passed 32
+real-browser checkpoints, including Products in the new Shell in both themes, reload and live
+computed-style checks for manual light and the legacy fallback. Export and cleanup passed.
