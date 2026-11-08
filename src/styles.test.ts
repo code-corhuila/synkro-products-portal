@@ -33,6 +33,30 @@ function blockAfter(css: string, start: string): string | undefined {
   return undefined
 }
 
+// Every `{ ... }` block that starts at a `{` following an occurrence of `start`, in order.
+function blocksAfter(css: string, start: string): string[] {
+  const blocks: string[] = []
+  let searchFrom = 0
+  for (let from = css.indexOf(start, searchFrom); from !== -1; from = css.indexOf(start, searchFrom)) {
+    const openIndex = css.indexOf('{', from)
+    let depth = 0
+    let closeIndex = -1
+    for (let index = openIndex; index < css.length; index += 1) {
+      if (css[index] === '{') depth += 1
+      if (css[index] === '}' && --depth === 0) { closeIndex = index; break }
+    }
+    if (closeIndex === -1) break
+    blocks.push(css.slice(openIndex + 1, closeIndex))
+    searchFrom = closeIndex + 1
+  }
+  return blocks
+}
+
+// The selectors (text before `{`) of each top-level rule inside a block, in order.
+function selectorsIn(block: string): string[] {
+  return [...block.matchAll(/([^{}]+)\{[^{}]*\}/g)].map(([, selector]) => selector.trim())
+}
+
 describe('portal stylesheets', () => {
   const files = stylesheets(SRC)
 
@@ -86,11 +110,29 @@ describe('numeric cells', () => {
 })
 
 // The dark theme is the person's choice in the host (<html data-theme>), which
-// may contradict the device: a portal rule keyed to prefers-color-scheme would
-// ignore it.
-it('keys its dark rules to the host theme, not to prefers-color-scheme', () => {
+// may contradict the device. A prefers-color-scheme rule is tolerated only as a
+// transitional fallback for a Host that has not set data-theme yet, and only
+// under :root:not([data-theme]) — so a Host that sets data-theme='light' is
+// never overridden by the device's dark preference.
+it('keys its dark rules to the host theme; prefers-color-scheme only as a :root:not([data-theme]) fallback', () => {
   const css = stylesheets(SRC).map((path) => readFileSync(path, 'utf8')).join('\n')
 
-  expect(css).not.toContain('prefers-color-scheme')
   expect(css).toContain(":root[data-theme='dark']")
+  // No other media condition for colour (e.g. prefers-color-scheme: light) is allowed.
+  const schemes = [...css.matchAll(/prefers-color-scheme:\s*(\w+)/g)]
+  expect(schemes.every(([, value]) => value === 'dark')).toBe(true)
+
+  const fallbackBlocks = blocksAfter(css, '@media (prefers-color-scheme: dark)')
+  expect(fallbackBlocks.length).toBeGreaterThan(0)
+
+  for (const block of fallbackBlocks) {
+    const selectors = selectorsIn(block)
+    expect(selectors.length).toBeGreaterThan(0)
+    for (const selector of selectors) {
+      expect(selector).toMatch(/^:root:not\(\[data-theme\]\)/)
+      // Every fallback rule must have an explicit data-theme='dark' counterpart.
+      const darkSelector = selector.replace(':root:not([data-theme])', ":root[data-theme='dark']")
+      expect(css).toContain(darkSelector)
+    }
+  }
 })
