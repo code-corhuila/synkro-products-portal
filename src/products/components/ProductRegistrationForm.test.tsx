@@ -1,7 +1,8 @@
-import { render, screen, within } from '@testing-library/react'
+import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import type { ComponentProps } from 'react'
 import { apiClient, hostError } from '../../test-doubles/shellApiClient'
+import { chooseCategory, offeredCategories } from '../../test-doubles/categoryCombobox'
 import { accessories, deferred, mouse, peripherals } from '../../test-doubles/productsFixtures'
 import type { CategoryResponse } from '../model/category'
 import { ProductRegistrationForm } from './ProductRegistrationForm'
@@ -27,7 +28,7 @@ type User = ReturnType<typeof userEvent.setup>
 async function fillValid(user: User, price = '12,5') {
   await user.type(screen.getByLabelText('Nombre'), 'Wireless mouse')
   await user.type(screen.getByLabelText('Precio'), price)
-  await user.selectOptions(screen.getByLabelText('Categoría'), 'Peripherals')
+  await chooseCategory(user, screen.getByLabelText('Categoría'), 'Peripherals')
 }
 
 const submitButton = () => screen.getByRole('button', { name: /Registrar producto|Registrando/ })
@@ -72,12 +73,10 @@ describe('ProductRegistrationForm', () => {
       expect(screen.getByLabelText('Precio')).toHaveAttribute('inputmode', 'decimal')
     })
 
-    it('offers only the active categories', () => {
-      renderForm()
+    it('offers only the active categories, by name', async () => {
+      const { user } = renderForm()
 
-      const options = within(screen.getByLabelText('Categoría')).getAllByRole('option')
-
-      expect(options.map((option) => option.textContent)).toEqual(['Elige una categoría', 'Peripherals', 'Monitors'])
+      expect(await offeredCategories(user, screen.getByLabelText('Categoría'))).toEqual(['Monitors', 'Peripherals'])
     })
 
     it('has no stock field: a new product starts with stock 0', () => {
@@ -88,12 +87,13 @@ describe('ProductRegistrationForm', () => {
   })
 
   describe('categories that are not ready', () => {
-    it('shows a loading option in the category while they load', () => {
+    it('shows that the categories are loading and does not let the field be used', () => {
       renderForm({ categories: { status: 'loading' } })
 
-      const select = screen.getByLabelText('Categoría')
-      expect(select).toHaveValue('')
-      expect(within(select).getByRole('option', { name: 'Cargando categorías…' })).toBeInTheDocument()
+      const field = screen.getByLabelText('Categoría')
+      expect(field).toHaveValue('')
+      expect(field).toBeDisabled()
+      expect(field).toHaveAttribute('placeholder', 'Cargando categorías…')
     })
 
     it('says on the category field that they failed to load, and offers a retry', async () => {
@@ -313,7 +313,7 @@ describe('ProductRegistrationForm', () => {
       expect(alert).toHaveFocus()
       expect(screen.getByLabelText('Nombre')).toHaveValue('Wireless mouse')
       expect(screen.getByLabelText('Precio')).toHaveValue('12,5')
-      expect(screen.getByLabelText('Categoría')).toHaveValue('c-1')
+      expect(screen.getByLabelText('Categoría')).toHaveValue('Peripherals')
       expect(submitButton()).toBeEnabled()
     })
 
