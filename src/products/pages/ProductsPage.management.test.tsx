@@ -1,6 +1,7 @@
 import { render, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { apiClient } from '../../test-doubles/shellApiClient'
+import { offeredCategories } from '../../test-doubles/categoryCombobox'
 import { CATEGORIES_PATH, CatalogueService, PRODUCTS_PATH } from '../../test-doubles/catalogueService'
 import type { CategoryResponse } from '../model/category'
 import type { ProductResponse } from '../model/product'
@@ -63,7 +64,7 @@ describe('ProductsPage: managing products and categories', () => {
 
       expect(panelForm('Editar producto').getByLabelText('Nombre')).toHaveValue('Teclado mecánico')
       expect(panelForm('Editar producto').getByLabelText('Precio')).toHaveValue('12500,50')
-      expect(panelForm('Editar producto').getByLabelText('Categoría')).toHaveValue('c-1')
+      expect(panelForm('Editar producto').getByLabelText('Categoría')).toHaveValue('Periféricos')
       expect(panelForm('Editar producto').getByLabelText('Nombre')).toHaveFocus()
     })
 
@@ -392,11 +393,12 @@ describe('ProductsPage: managing products and categories', () => {
       expect(await screen.findByRole('button', { name: 'Renombrar categoría Audio' })).toBeInTheDocument()
       expect(screen.queryByRole('form', { name: 'Nueva categoría' })).not.toBeInTheDocument()
       expect(announcement()).toHaveTextContent('Categoría creada')
-      expect(within(screen.getByRole('combobox', { name: 'Categoría' })).getByRole('option', { name: 'Audio' })).toBeInTheDocument()
+      // The list filter keeps its own native select named Categoría.
+      expect(within(screen.getByLabelText('Categoría', { selector: 'select' })).getByRole('option', { name: 'Audio' })).toBeInTheDocument()
       expect(service.requests('POST', CATEGORIES_PATH)).toHaveLength(1)
 
       await user.click(screen.getByRole('button', { name: 'Nuevo producto' }))
-      expect(within(panelForm('Nuevo producto').getByLabelText('Categoría')).getByRole('option', { name: 'Audio' })).toBeInTheDocument()
+      expect(await offeredCategories(user, panelForm('Nuevo producto').getByLabelText('Categoría'))).toContain('Audio')
     })
 
     it('shows a duplicate name on the field and creates nothing', async () => {
