@@ -59,6 +59,16 @@ it('teclado: flechas, Enter y Escape', async () => {
   expect(chosen()).toBe('c')
 })
 
+it('ArrowUp sin una opción activa empieza por la última categoría visible', async () => {
+  const user = userEvent.setup()
+  render(<Harness categories={all} />)
+  await user.click(box())
+  await user.keyboard('{ArrowUp}')
+  expect(box()).toHaveAttribute('aria-activedescendant', screen.getAllByRole('option')[2].id)
+  await user.keyboard('{Enter}')
+  expect(chosen()).toBe('a')
+})
+
 it('cambiar el texto no pierde la categoría elegida: solo la reemplaza otra elección', async () => {
   const user = userEvent.setup()
   render(<Harness categories={all} initial="a" />)
