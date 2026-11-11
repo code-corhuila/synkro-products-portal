@@ -149,7 +149,7 @@ export function ProductForm({
         value={categoryId}
         error={fieldErrors.categoryId}
         hint={categoryId === '' ? emptyCategoryHint : undefined}
-        selectRef={controlRef('categoryId')}
+        inputRef={controlRef('categoryId')}
         onChange={(chosen) => edit('categoryId', chosen)}
         onRetry={onRetryCategories}
       />

@@ -1,6 +1,7 @@
 import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { apiClient, hostError } from '../../test-doubles/shellApiClient'
+import { chooseCategory, offeredCategories } from '../../test-doubles/categoryCombobox'
 import { accessories, deferred, mouse, peripherals } from '../../test-doubles/productsFixtures'
 import type { CategoryResponse } from '../model/category'
 import type { Loadable } from '../model/loadable'
@@ -49,7 +50,7 @@ describe('ProductEditForm', () => {
 
       expect(screen.getByLabelText('Nombre')).toHaveValue('Wireless mouse')
       expect(screen.getByLabelText('Precio')).toHaveValue('1234,56')
-      expect(screen.getByLabelText('Categoría')).toHaveValue('c-1')
+      expect(screen.getByLabelText('Categoría')).toHaveValue('Peripherals')
     })
 
     it.each([
@@ -68,11 +69,10 @@ describe('ProductEditForm', () => {
       expect(screen.getByLabelText('Nombre')).toHaveFocus()
     })
 
-    it('offers only active categories', () => {
-      renderForm()
+    it('offers only active categories', async () => {
+      const { user } = renderForm()
 
-      const options = [...screen.getByLabelText('Categoría').querySelectorAll('option')].map((option) => option.textContent)
-      expect(options).toEqual(['Elige una categoría', 'Peripherals', 'Monitors'])
+      expect(await offeredCategories(user, screen.getByLabelText('Categoría'))).toEqual(['Monitors', 'Peripherals'])
     })
 
     it('starts the category empty, and says why, when the current one is inactive', () => {
@@ -109,7 +109,7 @@ describe('ProductEditForm', () => {
     it('stops saying the category is inactive once another one is chosen', async () => {
       const { user } = renderForm({ product: { ...mouse, categoryId: accessories.categoryId } })
 
-      await user.selectOptions(screen.getByLabelText('Categoría'), 'Monitors')
+      await chooseCategory(user, screen.getByLabelText('Categoría'), 'Monitors')
 
       expect(screen.getByLabelText('Categoría')).not.toHaveAccessibleDescription(/inactiva/)
     })
@@ -132,7 +132,7 @@ describe('ProductEditForm', () => {
       await user.type(screen.getByLabelText('Nombre'), '  Wireless mouse 2  ')
       await user.clear(screen.getByLabelText('Precio'))
       await user.type(screen.getByLabelText('Precio'), '999,5')
-      await user.selectOptions(screen.getByLabelText('Categoría'), 'Monitors')
+      await chooseCategory(user, screen.getByLabelText('Categoría'), 'Monitors')
       await user.click(save())
 
       expect(apiClient.request).toHaveBeenCalledExactlyOnceWith('/api/v1/products/p-1', {
