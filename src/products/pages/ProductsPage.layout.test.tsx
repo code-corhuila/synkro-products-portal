@@ -188,6 +188,8 @@ describe('ProductsPage: the design', () => {
       screen.getByRole('button', { name: 'Buscar' }),
       screen.getByLabelText('Categoría'),
       screen.getByLabelText('Estado'),
+      screen.getByLabelText('Solo con existencias'),
+      screen.getByRole('button', { name: 'Descargar Excel' }),
       screen.getByRole('region', { name: 'Tabla de productos' }),
       screen.getByRole('button', { name: 'Editar Wireless mouse' }),
       screen.getByRole('button', { name: 'Ajustar stock Wireless mouse' }),
