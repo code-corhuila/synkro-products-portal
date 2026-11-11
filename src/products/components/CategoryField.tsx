@@ -57,7 +57,7 @@ export function CategoryField({ id, categories, value, error, hint, inputRef, on
       event.preventDefault()
       setOpen(true)
       const step = event.key === 'ArrowDown' ? 1 : -1
-      setActive((current) => (current + step + shown.length) % shown.length)
+      setActive((current) => current < 0 && step < 0 ? shown.length - 1 : (current + step + shown.length) % shown.length)
     } else if (event.key === 'Enter') {
       // Never submit the form from the selector; pick only what the person highlighted.
       event.preventDefault()
