@@ -1,6 +1,7 @@
 import { render, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { apiClient, hostError } from '../../test-doubles/shellApiClient'
+import { chooseCategory, offeredCategories } from '../../test-doubles/categoryCombobox'
 import { accessories, categoriesPage, mouse, peripherals, productsPage } from '../../test-doubles/productsFixtures'
 import type { Page } from '../model/page'
 import type { ProductResponse } from '../model/product'
@@ -62,7 +63,7 @@ async function openForm(user: ReturnType<typeof userEvent.setup>) {
 async function fillAndSubmit(user: ReturnType<typeof userEvent.setup>) {
   await user.type(registrationForm().getByLabelText('Nombre'), 'USB webcam')
   await user.type(registrationForm().getByLabelText('Precio'), '89900')
-  await user.selectOptions(registrationForm().getByLabelText('Categoría'), 'Peripherals')
+  await chooseCategory(user, registrationForm().getByLabelText('Categoría'), 'Peripherals')
   await user.click(screen.getByRole('button', { name: 'Registrar producto' }))
 }
 
@@ -112,7 +113,7 @@ describe('ProductsPage: registering a product', () => {
 
       const categoryRequests = apiClient.request.mock.calls.filter(([path]) => path === CATEGORIES_PATH)
       expect(categoryRequests).toHaveLength(1)
-      expect(within(registrationForm().getByLabelText('Categoría')).getByRole('option', { name: 'Peripherals' })).toBeInTheDocument()
+      expect(await offeredCategories(user, registrationForm().getByLabelText('Categoría'))).toContain('Peripherals')
     })
 
     it('closes with Cancelar and gives focus back to the action that opened it', async () => {
