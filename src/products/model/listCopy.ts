@@ -3,7 +3,7 @@
 export const listCopy = {
   title: 'Productos',
   catalogue: 'Catálogo',
-  priceUnavailable: 'No se puede mostrar con precisión',
+  priceUnavailable: 'Importe fuera del rango seguro',
   loading: 'Cargando productos…',
 
   summary: 'Resumen del catálogo',

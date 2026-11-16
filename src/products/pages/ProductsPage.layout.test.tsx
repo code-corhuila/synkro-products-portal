@@ -64,7 +64,7 @@ describe('ProductsPage: the design', () => {
     serve({ products: productsPage([mouse, { ...mouse, productId: 'large', name: 'Large price', priceCents: 5_000_000_000_000_000_000 }]) })
     render(<ProductsPage />)
     const large = await screen.findByRole('row', { name: /Large price/ })
-    expect(within(large).getByText('No se puede mostrar con precisión')).toBeInTheDocument()
+    expect(within(large).getByText('Importe fuera del rango seguro')).toBeInTheDocument()
     expect(within(screen.getByRole('row', { name: /Wireless mouse/ })).getByText('COP 1.234,56')).toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'Buscar', exact: true })).toBeEnabled()
   })
