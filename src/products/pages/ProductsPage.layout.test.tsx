@@ -66,7 +66,7 @@ describe('ProductsPage: the design', () => {
     const large = await screen.findByRole('row', { name: /Large price/ })
     expect(within(large).getByText('Importe fuera del rango seguro')).toBeInTheDocument()
     expect(within(screen.getByRole('row', { name: /Wireless mouse/ })).getByText('COP 1.234,56')).toBeInTheDocument()
-    expect(screen.getByRole('button', { name: 'Buscar', exact: true })).toBeEnabled()
+    expect(screen.getByRole('button', { name: /^Buscar$/ })).toBeEnabled()
   })
 
   it('has the page title and the Catálogo section', async () => {
