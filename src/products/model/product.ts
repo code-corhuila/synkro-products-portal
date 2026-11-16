@@ -1,4 +1,5 @@
 import { formatMinorUnits } from './money'
+import { listCopy } from './listCopy'
 import { stockStateOf, type StockState } from './stockState'
 
 // Mirrors ProductResponse in synkro-products-api.yaml. The response carries
@@ -42,7 +43,9 @@ export function toProductRow(
   return {
     productId: product.productId,
     name: product.name,
-    price: formatMinorUnits(product.priceCents),
+    price: Number.isSafeInteger(product.priceCents) && product.priceCents >= 0
+      ? formatMinorUnits(product.priceCents)
+      : listCopy.priceUnavailable,
     stock: product.stock,
     stockState: stockStateOf(product.stock, hasOpenAlert),
     category: categoryLabel(product.categoryId),
