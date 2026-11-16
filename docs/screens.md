@@ -49,6 +49,13 @@ the user reads is Spanish and lives in `model/listCopy.ts` (the registration for
   tiles use the same hook.
 - **Money:** `priceCents` is an integer count of minor units of COP (1/100). `model/money.ts`
   formats it with integer arithmetic only, as `COP 1.234,56` (Colombian separators).
+  A received price outside the browser's safe integer range keeps its product row
+  visible with `No se puede mostrar con precisión`, never an approximate amount.
+  The catalogue, filters and stock lookup remain usable. Strict money formatting,
+  safe text input and Excel precision guards remain active; full-range int64
+  monetary display is not claimed. Existing stored values are never rewritten.
+  Trace: NFR-007/009 → HU-INF-09/#325 → `product.test.ts` and
+  `ProductsPage.layout.test.tsx` → `model/product.ts`, `model/listCopy.ts`.
 
 The list also tells *Stock bajo* (see "Low stock"); the stock lookup and the stock alerts are separate screens below.
 
