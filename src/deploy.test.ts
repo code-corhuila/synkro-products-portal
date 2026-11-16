@@ -19,9 +19,9 @@ function locationBlock(template: string, opening: string): string {
 describe('the container image', () => {
   const dockerfile = read('deploy/Dockerfile')
 
-  it('builds in a Node 22 alpine stage and serves with nginx 1.27 alpine', () => {
+  it('builds in a Node 22 alpine stage and serves with a digest-pinned nginx runtime', () => {
     expect(dockerfile).toMatch(/^FROM node:22-alpine AS build$/m)
-    expect(dockerfile).toMatch(/^FROM nginx:1\.27-alpine$/m)
+    expect(dockerfile).toMatch(/^FROM nginx:1\.30\.6-alpine@sha256:[a-f0-9]{64}$/m)
   })
 
   it('installs exactly what the lockfile says', () => {
